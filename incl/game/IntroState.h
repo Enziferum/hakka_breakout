@@ -23,7 +23,8 @@ source distribution.
 #include <functional>
 #include <utility>
 
-#include "State.h"
+#include "hakka/State.h"
+#include "hakka/IStateMachine.h"
 #include "hakka/Sprite.h"
 
 //todo be based on chrono
@@ -44,11 +45,11 @@ private:
     bool m_endless;
 };
 
-class IntroState: public State{
+class IntroState: public hakka::State{
 public:
     using Ptr = std::shared_ptr<IntroState>;
 public:
-    IntroState(IStateMachine& machine);
+    IntroState(hakka::IStateMachine& machine);
     ~IntroState()override = default;
 
     void handleEvents(const hakka::Event& event)override;

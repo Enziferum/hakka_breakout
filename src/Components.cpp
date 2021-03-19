@@ -19,32 +19,33 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#include "game/Components.h"
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+namespace ecs{
 
-void MenuState::handleEvents(const hakka::Event& event) {
+    TransformComponent::TransformComponent() {
 
-}
+    }
 
-void MenuState::update(float dt) {
+    TransformComponent::~TransformComponent() {
 
-}
+    }
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
+    SpriteComponent::SpriteComponent() {
 
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
+    }
 
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+    void SpriteComponent::setTexture(const hakka::Texture &texture) {
+
+    }
+
+    hakka::Texture &SpriteComponent::getTexture() {
+        return const_cast<hakka::Texture &>(*m_texture);
+    }
+
+    const hakka::Texture &SpriteComponent::getTexture() const {
+        return *m_texture;
+    }
+
+
 }

@@ -19,32 +19,41 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#include "game/System.h"
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+namespace ecs{
+    System::System():
+        m_active(true),
+        m_scene(nullptr) {
 
-void MenuState::handleEvents(const hakka::Event& event) {
+    }
 
-}
+    System::~System() {}
 
-void MenuState::update(float dt) {
+    void System::process(float dt) {
 
-}
+    }
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
+    void System::on_addEntity(Entity entity) {
 
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
+    }
 
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+    void System::setActive(const bool &status) {
+        m_active = status;
+    }
+
+    std::vector<Entity> &System::getEntites() {
+        return m_entities;
+    }
+
+    const std::vector<Entity> &System::getEntites() const {
+        return m_entities;
+    }
+
+    void System::addEntity(Entity entity) {
+        m_entities.push_back(entity);
+        on_addEntity(entity);
+    }
+
+
 }

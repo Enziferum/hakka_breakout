@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -18,22 +18,29 @@ and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any
 source distribution.
 *********************************************************************/
-#include <iostream>
 
-#include "game/State.h"
-#include "game/StateMachine.h"
+#pragma once
 
+#include "hakka/Transformable.h"
+#include "hakka/Sprite.h"
 
-IStateMachine::IStateMachine():
-    m_window(hakka::vec2u(800, 600), "Hakka_Breakout") {
-}
+namespace ecs{
+    class TransformComponent final: public hakka::Transformable{
+    public:
+        TransformComponent();
+        ~TransformComponent();
 
-IStateMachine::~IStateMachine() {}
+    };
 
-void IStateMachine::pushState(const int& id) {
-    m_current_state = id;
-}
+    class SpriteComponent final{
+    public:
+        SpriteComponent();
+        ~SpriteComponent() = default;
 
-void IStateMachine::popState() {
-
+        void setTexture(const hakka::Texture& texture);
+        hakka::Texture& getTexture();
+        const hakka::Texture& getTexture() const;
+    private:
+        const hakka::Texture* m_texture;
+    };
 }

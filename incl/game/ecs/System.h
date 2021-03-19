@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -20,23 +20,27 @@ source distribution.
 *********************************************************************/
 
 #pragma once
-#include <memory>
 
-#include "StateMachine.h"
-#include "../../hakka/incl/hakka/Event.h"
+namespace hakka {
 
-class State{
-public:
-    using Ptr = std::shared_ptr<State>;
-public:
-    State(IStateMachine& machine);
-    virtual ~State() = 0;
+    class System {
+    public:
+        System();
+        ~System() = default;
 
-    virtual void handleEvents(const hakka::Event& event) = 0;
-    virtual void update(float dt) = 0;
-    virtual void render() = 0;
 
-protected:
-    IStateMachine& m_machine;
-    hakka::RenderWindow& m_window;
-};
+    private:
+        friend class SystemManager;
+        friend class Scene;
+    };
+
+
+    class SystemManager {
+    public:
+        SystemManager();
+        ~SystemManager() = default;
+
+
+    private:
+    };
+}

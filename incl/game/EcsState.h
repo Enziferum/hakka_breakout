@@ -19,32 +19,29 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#pragma once
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+#include "hakka/ResourceHandler.h"
+#include "hakka/IStateMachine.h"
+#include "hakka/State.h"
+#include "Scene.h"
 
-void MenuState::handleEvents(const hakka::Event& event) {
+class EcsState: public hakka::State{
+public:
+    using Ptr = std::shared_ptr<EcsState>;
+public:
+    EcsState(hakka::IStateMachine& machine);
+    ~EcsState()override = default;
 
-}
 
-void MenuState::update(float dt) {
+    void handleEvents(const hakka::Event &event) override;
+    void update(float dt) override;
+    void render() override;
 
-}
-
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
-
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
-}
+private:
+    void setup();
+    void setup_ecs();
+private:
+    ecs::Scene m_scene;
+    hakka::ResourceHandler<hakka::Texture> m_textures;
+};

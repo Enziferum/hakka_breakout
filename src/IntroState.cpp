@@ -26,7 +26,9 @@ constexpr float second = 1000.f;
 
 Timer::Timer():
 to_time(1.f),
-m_endless(false) {}
+t(0.f),
+m_endless(false) {
+}
 
 void Timer::update(float dt) {
     if(t < to_time)
@@ -56,14 +58,20 @@ void Timer::reset(float time) {
 }
 
 
-IntroState::IntroState(IStateMachine& machine) :
-    State(machine) {
+IntroState::IntroState(hakka::IStateMachine& machine) :
+    State(machine),
+    m_timer(){
+
     setup();
 }
 
 void IntroState::setup() {
     auto size = m_window.get_size();
-    m_texture.loadFromFile("res/textures/hakka.png", true);
+
+    if(!m_texture.loadFromFile("res/textures/hakka.png", true)) {
+        std::cout << "cant load texture" <<std::endl;
+        return;
+    }
 
     m_background.setTexture(m_texture);
     m_background.setScale(hakka::vec2f(256.f, 256.f));
@@ -71,7 +79,7 @@ void IntroState::setup() {
     m_background.setPosition(hakka::vec2f(size.x / 2.f - tx_size.x / 2,
                                           size.y / 2.f - tx_size.y / 2));
 
-    //m_background.setColor(hakka::Color::Green);
+    m_background.setColor(hakka::Color::Green);
     m_timer.onTick([this](float dt){
         m_timer.reset();
         m_machine.pushState(2);
@@ -82,7 +90,7 @@ void IntroState::handleEvents(const hakka::Event& event) {
     if(event.type == hakka::Event::KeyPressed &&
     event.key.code == GLFW_KEY_SPACE){
         if(m_timer.elapsed() >= 1.f){
-            //push state
+            m_machine.pushState(2);
         }
     }
 }

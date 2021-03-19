@@ -19,6 +19,7 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
+#include <iostream>
 #include <glad/glad.h>
 #include "stb_image/stb_image.h"
 
@@ -26,40 +27,42 @@ source distribution.
 
 namespace hakka{
 
-    Texture::Texture():m_size() {
+    Texture::Texture():m_size(),
+    buffer(nullptr)
+    {
         setup_GL();
+    }
+
+    Texture::~Texture() {
+        if(buffer)
+            stbi_image_free(buffer);
     }
 
     bool Texture::loadFromFile(const std::string& path, bool alpha) {
         int width, height, nrChannels;
-        unsigned char* data = stbi_load(path.c_str(), &width, &height,
+        buffer = stbi_load(path.c_str(), &width, &height,
                                         &nrChannels, 0);
 
         m_size.x = width;
         m_size.y = height;
-        if (data) {
-            GLenum format;
-            if(!alpha) {
-                format = GL_RGB;
-//                if (nrChannels == 1)
-//                    format = GL_RED;
-//                if (nrChannels == 3)
-//                    format = GL_RGB;
-//                if (nrChannels == 4)
-//                    format = GL_RGBA;
-            }
-            else
-                format = GL_RGBA;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, m_size.x, m_size.y,
-                         0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
 
-            stbi_image_free(data);
-        }
-        else{
-            stbi_image_free(data);
+        if(!buffer)
             return false;
-        }
+
+        GLenum format;
+
+        format = GL_RGB;
+        if (nrChannels == 1)
+            format = GL_RED;
+        if (nrChannels == 3)
+            format = GL_RGB;
+        if (nrChannels == 4)
+            format = GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, m_size.x, m_size.y,
+                     0, format, GL_UNSIGNED_BYTE, buffer);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
         return true;
     }
 
@@ -98,4 +101,6 @@ namespace hakka{
     const unsigned int& Texture::get_id() const {
         return m_texture;
     }
+
+
 }

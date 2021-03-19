@@ -39,9 +39,12 @@ public:
     bool loadLevel(const std::string& path, const hakka::vec2f& size,
                    const hakka::ResourceHandler<hakka::Texture>& handler);
 
+    void update(float dt);
+
     std::vector<GameObject>& getTiles(){
         return m_tiles;
     }
+    bool destroyed() const;
 protected:
     void draw(hakka::RenderTarget& target,
               hakka::RenderStates states) const override;

@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,29 +19,8 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#pragma once
-#include "StateMachine.h"
-#include "State.h"
+#include "game/ecs/MessageBus.h"
 
-class App: public IStateMachine{
-public:
-    App();
-    ~App() = default;
+namespace hakka{
 
-    void run();
-    void addState(const int, State::Ptr);
-
-    void setCurrentState(const int& id);
-private:
-    void handleEvents(hakka::Event& event);
-    void update(float dt);
-    void render();
-
-    void setup();
-private:
-    float deltaTime = 0.f;
-    float lastTime = 0.f;
-};
-
-
-
+}

@@ -100,6 +100,12 @@ bool Level::loadLevel(const std::string& path, const hakka::vec2f& size,
     return true;
 }
 
+void Level::update(float dt) {
+    m_tiles.erase(std::remove_if(m_tiles.begin(), m_tiles.end(),[](const GameObject& object){
+        return object.m_destroyed;
+    }),m_tiles.end());
+}
+
 void Level::draw(hakka::RenderTarget &target, hakka::RenderStates states) const {
     for(auto& it: m_tiles){
         if(it.m_destroyed)
@@ -107,3 +113,14 @@ void Level::draw(hakka::RenderTarget &target, hakka::RenderStates states) const 
         target.draw(it, states);
     }
 }
+
+bool Level::destroyed() const {
+    bool res = true;
+
+    for(auto& it: m_tiles)
+        res *= it.m_destroyed;
+
+    return res;
+}
+
+

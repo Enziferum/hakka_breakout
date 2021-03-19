@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,10 +19,41 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/State.h"
+#pragma once
 
-State::State(IStateMachine& machine): m_machine(machine),
-m_window(m_machine.getWindow()) {
+#include <vector>
+#include <memory>
+#include "hakka/Drawable.h"
+
+#include "System.h"
+#include "Entity.h"
+
+namespace hakka{
+    class Scene: public Drawable{
+    public:
+        Scene();
+        ~Scene() = default;
+
+
+        template<typename T, typename ...Args>
+        void addSystem(Args&&...args);
+    protected:
+        void draw(RenderTarget &target, RenderStates states) const override;
+
+    private:
+        //renderable content
+        SystemManager m_systemManager;
+        EntityManager m_entityManager;
+
+        std::vector<Drawable*> m_drawables;
+    };
+
+
+    template<typename T, typename... Args>
+    void Scene::addSystem(Args&&... args) {
+        auto system = std::make_shared<T>(std::forward<Args>(args)...);
+        if(std::is_base_of<Drawable, T>::value){
+            m_drawables.push_back(dynamic_cast<Drawable*>(system));
+        }
+    }
 }
-
-State::~State() {}

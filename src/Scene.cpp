@@ -19,32 +19,50 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#include "hakka/RenderTarget.h"
+#include "game/Scene.h"
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+namespace ecs{
+    Scene::Scene():
+    m_systems(),
+    m_drawables() {
 
-void MenuState::handleEvents(const hakka::Event& event) {
+    }
 
-}
+    Entity Scene::addEntity() {
+        m_entityBuffer.push_back(m_entityManager.addEntity());
+        return m_entityBuffer.back();
+    }
 
-void MenuState::update(float dt) {
+    void Scene::forwardEvent(const hakka::Event& event) {
 
-}
+    }
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
+    void Scene::update(float dt) {
 
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
+        if(!m_entityBuffer.empty()) {
+            for (auto& it: m_systems) {
+                //check
+            }
+            m_entityBuffer.clear();
+        }
 
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+
+        for(auto& it: m_systems) {
+            if(!it->m_active)
+                continue;
+            it->process(dt);
+        }
+    }
+
+    void Scene::draw(hakka::RenderTarget &target, hakka::RenderStates state) const {
+        for(auto& it: m_drawables)
+            target.draw(*it);
+    }
+
+    void Scene::destroyEntity(Entity entity) {
+
+    }
+
+
 }

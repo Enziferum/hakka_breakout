@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -21,28 +21,50 @@ source distribution.
 
 #pragma once
 
+#include <unordered_map>
+#include <memory>
+#include <cassert>
 #include <string>
-#include "Vector2.h"
+
+#include "State.h"
+#include "IStateMachine.h"
 
 namespace hakka{
-    class Texture{
+
+    class State;
+    class App final: public IStateMachine{
     public:
-        Texture();
-        ~Texture();
+        App();
+        App(const vec2u& size, const std::string& name, const bool& sync);
+        ~App() = default;
 
-        bool loadFromFile(const std::string& path, bool alpha = false);
+        template<typename T, typename ... Args>
+        void register_state(const int id, Args&& ... args);
 
-        vec2u& get_size();
-        const vec2u& get_size() const;
-
-        void generate(const vec2u& size, void* data);
-        const unsigned int& get_id()const;
-        void bind()const;
+        void run();
     private:
-        void setup_GL();
+        void handleEvents(hakka::Event&);
+        void update();
+        void render();
     private:
         vec2u m_size;
-        unsigned int m_texture;
-        unsigned char* buffer;
+        std::string m_name;
+        bool m_vsync;
+
+        float lastTime;
+        float deltaTime;
     };
+
+    template<class T, typename ... Args>
+    void App::register_state(const int id, Args&& ... args) {
+        if(!std::is_base_of<State, T>::value)
+            return;
+        State::Ptr ptr = std::make_shared<T>(std::forward<Args>(args) ...);
+
+        if(ptr == nullptr)
+            return;
+
+        m_states.insert(std::pair<int, State::Ptr>(id, ptr));
+    }
+
 }

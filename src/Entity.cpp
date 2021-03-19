@@ -19,32 +19,30 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#include "game/Entity.h"
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+namespace ecs{
+    Entity::Entity() {}
 
-void MenuState::handleEvents(const hakka::Event& event) {
+    EntityManager::EntityManager() {
 
-}
+    }
 
-void MenuState::update(float dt) {
+    Entity EntityManager::addEntity() {
+        Entity entity;
+        entity.m_id = 0;
+        return entity;
+    }
 
-}
+    void EntityManager::destroyEntity(Entity entity) {
+        //todo erase
+        for(auto& it: m_entites){
+            if(it.first == entity.m_id){
+                //we found entity to remove
+                //we can free this id
+                it.first;
+            }
+        }
+    }
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
-
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
 }

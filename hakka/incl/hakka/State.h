@@ -19,32 +19,26 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#pragma once
+#include <memory>
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+#include "IStateMachine.h"
+#include "Event.h"
 
-void MenuState::handleEvents(const hakka::Event& event) {
+namespace hakka{
+    class State{
+    public:
+        using Ptr = std::shared_ptr<State>;
+    public:
+        State(IStateMachine& machine);
+        virtual ~State() = 0;
 
-}
+        virtual void handleEvents(const Event&) = 0;
+        virtual void update(float dt) = 0;
+        virtual void render() = 0;
 
-void MenuState::update(float dt) {
-
-}
-
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
-
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+    protected:
+        IStateMachine& m_machine;
+        RenderWindow& m_window;
+    };
 }

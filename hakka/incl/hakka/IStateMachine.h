@@ -19,32 +19,32 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#pragma once
+#include <unordered_map>
+#include <memory>
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+#include "RenderWindow.h"
 
-void MenuState::handleEvents(const hakka::Event& event) {
+namespace hakka{
+    class State;
+    class IStateMachine{
+    public:
+        IStateMachine();
+        virtual ~IStateMachine();
 
-}
+        void pushState(const int& state);
+        void popState();
+        hakka::RenderWindow& getWindow(){
+            return m_window;
+        }
 
-void MenuState::update(float dt) {
+        void setCurrent(const unsigned int& id);
+    protected:
+        RenderWindow m_window;
+        std::unordered_map<unsigned int,
+                std::shared_ptr<State>> m_states;
+        unsigned int m_current_state = -1;
+    };
 
-}
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
-
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
 }

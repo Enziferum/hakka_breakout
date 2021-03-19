@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+hakka_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,27 +19,17 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#pragma once
-#include <unordered_map>
-#include <memory>
+#include <game/Scene.h>
 
-#include "hakka/RenderWindow.h"
+#include "game/ecs/Scene.h"
 
-class State;
-class IStateMachine{
-public:
-    IStateMachine();
-    virtual ~IStateMachine() = 0;
+namespace hakka{
 
-    void pushState(const int& id);
-    void popState();
-    hakka::RenderWindow& getWindow(){
-        return m_window;
+    void Scene::draw(RenderTarget& target, RenderStates states) const {
+
     }
 
-protected:
-    hakka::RenderWindow m_window;
-    int m_current_state = -1;
 
-    std::unordered_map<int, std::shared_ptr<State> > m_states;
-};
+}
+
+

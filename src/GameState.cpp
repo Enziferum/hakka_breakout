@@ -23,7 +23,6 @@ source distribution.
 #include <algorithm>
 #include <ctime>
 
-
 //todo own keys
 #include <GLFW/glfw3.h>
 
@@ -34,8 +33,10 @@ source distribution.
 constexpr float speed = 500.f;
 const float ball_radius = 12.5f;
 
-GameState::GameState(IStateMachine& machine):
-    State(machine), m_keys(), m_keysProcessed() {
+GameState::GameState(hakka::IStateMachine& machine):
+    State(machine), m_keys(), m_keysProcessed() ,
+    m_pause(false){
+    std::cout << "Try to setup" <<std::endl;
     setup();
 }
 
@@ -74,16 +75,19 @@ void GameState::setup() {
     auto size = m_window.get_size();
 
     //todo load all from special folder
+    Level zero;
     Level one;
     Level two;
     Level three;
     Level four;
 
+    //zero.loadLevel("res/levels/0.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
     one.loadLevel("res/levels/1.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
     two.loadLevel("res/levels/2.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
     three.loadLevel("res/levels/3.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
     four.loadLevel("res/levels/4.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
 
+    //m_levels.push_back(zero);
     m_levels.push_back(one);
     m_levels.push_back(two);
     m_levels.push_back(three);
@@ -107,23 +111,31 @@ void GameState::setup() {
                                                     -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.m_sprite.setTexture(m_textures.get("face"));
     m_ball.velocity = hakka::vec2f(100.0f, -350.0f);
-    m_ball.border = size.y;
+    m_ball.border = size.x;
     m_ball.radius = ball_radius;
     m_ball.setPos(ballPos);
     m_ball.setSize(hakka::vec2f(ball_radius * 2.f, ball_radius * 2.f));
 
-    Audio::getInstanse() ->loadFile("res/audio/bleep_1.wav",
+    Audio::getInstanse() -> loadFile("res/audio/bleep_1.wav",
                                         "bleep_1", AudioType::sound);
-    Audio::getInstanse() ->loadFile("res/audio/bleep.wav",
+    Audio::getInstanse() -> loadFile("res/audio/bleep.wav",
                                     "bleep", AudioType::sound);
-    Audio::getInstanse() ->loadFile("res/audio/solid.wav",
+    Audio::getInstanse() -> loadFile("res/audio/solid.wav",
                                     "solid", AudioType::sound);
-    Audio::getInstanse() ->loadFile("res/audio/powerup.wav",
+    Audio::getInstanse() -> loadFile("res/audio/powerup.wav",
                                     "power_up", AudioType::sound);
 }
 
 
 void GameState::handleEvents(const hakka::Event& event) {
+    if(m_pause) {
+        if(event.type == hakka::Event::KeyPressed) {
+            if (event.key.code == GLFW_KEY_ESCAPE)
+                m_pause = false;
+        }
+        return;
+    }
+
     if(event.type == hakka::Event::KeyPressed){
         if (event.key.code == GLFW_KEY_ESCAPE)
             m_pause = true;
@@ -150,12 +162,11 @@ void GameState::handleEvents(const hakka::Event& event) {
 }
 
 void GameState::update(float dt) {
+    if(m_pause)
+        return;
     process_input(dt);
-
-    m_ball.move(dt);
     process_collisions(dt);
-    m_particleEmitter.update(dt, 2, m_ball, hakka::vec2f(6.25f,
-                                                         6.25f));
+    m_ball.move(dt);
 
     //need reset level
     if(m_ball.m_pos.y >= 600)
@@ -166,10 +177,14 @@ void GameState::update(float dt) {
         last_lives = m_lives;
     }
 
-    m_postProcessing.update(dt);
+    m_levels[currlevel].update(dt);
 
+    m_particleEmitter.update(dt, 2, m_ball, hakka::vec2f(6.25f,
+                                                         6.25f));
     update_powerups(dt);
-
+    if(m_levels[currlevel].destroyed())
+        changeLevel();
+    m_postProcessing.update(dt);
     Audio::getInstanse() -> update_sounds();
 }
 
@@ -190,7 +205,7 @@ void GameState::process_input(float dt) {
     }
 
     if(m_keys[GLFW_KEY_D]) {
-        if (m_paddle.m_pos.x <= 640 - m_paddle.m_size.x) {
+        if (m_paddle.m_pos.x <= 800 - m_paddle.m_size.x) {
             m_paddle.m_pos.x += velocity;
             m_paddle.m_sprite.setPosition(m_paddle.m_pos);
 
@@ -198,7 +213,6 @@ void GameState::process_input(float dt) {
                 m_ball.m_pos.x += velocity;
                 m_ball.m_sprite.setPosition(m_ball.m_pos);
             }
-
         }
     }
 
@@ -353,7 +367,7 @@ void GameState::process_collisions(float dt) {
 
 void GameState::reset_game() {
     if(m_lives == 0){
-        m_machine.pushState(0);
+        m_machine.pushState(1);
         m_lives = 3;
         return;
     }
@@ -434,7 +448,7 @@ void GameState::activate_power(PowerUp& power) {
         case PowerUpType::wallbreaker:
             //
             m_ball.color = hakka::Color::from_gl(1.0f, 0.5f, 0.5f);
-            m_ball.wallbreaker = true;
+           // m_ball.wallbreaker = true;
             break;
         case PowerUpType::sticky:
             //
@@ -445,10 +459,30 @@ void GameState::activate_power(PowerUp& power) {
             break;
         case PowerUpType::size:
             m_paddle.m_size.x += 50;
+            m_paddle.setSize(m_paddle.m_size);
             break;
         default:
             break;
     }
+}
+
+void GameState::changeLevel() {
+
+    currlevel++;
+    m_power_ups.clear();
+
+    m_postProcessing.setValue("chaos", false);
+    m_postProcessing.setValue("confuse", false);
+
+
+    auto size = m_window.get_size();
+    hakka::vec2f paddle_size(100.f, 20.f);
+    m_paddle.setPos(hakka::vec2f(size.x / 2.f - paddle_size.x / 2,
+                                 size.y - paddle_size.y));
+    hakka::vec2f ballPos = hakka::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
+                                        -ball_radius * 2.0f + m_paddle.m_pos.y);
+    m_ball.stuck = true;
+    m_ball.setPos(ballPos);
 }
 
 

@@ -52,7 +52,7 @@ namespace hakka {
     protected:
         void draw(RenderTarget &target, RenderStates states) const override;
 
-    private:
+    protected:
         const Texture* m_texture;
         IntRect m_texture_rect;
         Color m_color;

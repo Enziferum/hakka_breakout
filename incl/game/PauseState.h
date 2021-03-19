@@ -21,9 +21,9 @@ source distribution.
 
 #pragma once
 
-#include "State.h"
+#include "hakka/State.h"
 
-class PauseState: public State{
+class PauseState: public hakka::State{
 public:
     PauseState();
     ~PauseState();

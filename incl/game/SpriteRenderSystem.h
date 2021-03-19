@@ -19,32 +19,31 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#pragma once
 
-MenuState::MenuState(hakka::IStateMachine& machine) : State(machine) {
-    setup();
-}
+#include <vector>
 
-void MenuState::handleEvents(const hakka::Event& event) {
+#include "hakka/Drawable.h"
+#include "System.h"
 
-}
 
-void MenuState::update(float dt) {
+namespace ecs{
 
-}
+    class SpriteRenderSystem: public System, hakka::Drawable{
+    public:
+        SpriteRenderSystem();
+        ~SpriteRenderSystem()override = default;
 
-void MenuState::render() {
-    m_window.draw(m_background);
-    m_window.draw(m_name);
-}
+        void process(float dt) override;
+        virtual void debug();
+    protected:
+        void on_addEntity(Entity entity) override;
 
-void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
+    private:
+        void draw(hakka::RenderTarget &target,
+                  hakka::RenderStates states) const override;
 
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+    private:
+
+    };
 }

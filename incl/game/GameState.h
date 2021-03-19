@@ -21,21 +21,23 @@ source distribution.
 
 #pragma once
 
+#include "hakka/State.h"
+#include "hakka/IStateMachine.h"
+
 #include "hakka/Sprite.h"
 #include "hakka/ResourceHandler.h"
 #include "hakka/Text.h"
 
-#include "State.h"
 #include "Level.h"
 #include "ParticleEmitter.h"
 #include "PostProcessing.h"
 #include "PowerUp.h"
 
-class GameState: public State{
+class GameState: public hakka::State{
 public:
     using Ptr = std::shared_ptr<GameState>;
 public:
-    GameState(IStateMachine& machine);
+    GameState(hakka::IStateMachine& machine);
     ~GameState() override;
 
     void handleEvents(const hakka::Event& event) override;
@@ -51,6 +53,8 @@ private:
     void reset_game();
     void spawn_power_up(GameObject& box);
     void activate_power(PowerUp& power);
+
+    void changeLevel();
 private:
     hakka::ResourceHandler<hakka::Texture> m_textures;
     hakka::ResourceHandler<hakka::Font> m_fonts;
@@ -80,4 +84,5 @@ private:
     int m_lives = 3;
 
     bool m_pause;
+    hakka::Text m_won;
 };

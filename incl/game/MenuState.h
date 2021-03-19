@@ -20,16 +20,19 @@ source distribution.
 *********************************************************************/
 
 #pragma once
-#include "State.h"
+
+#include "hakka/State.h"
+#include "hakka/IStateMachine.h"
+
 #include "hakka/Text.h"
 #include "hakka/Sprite.h"
 #include "hakka/ResourceHandler.h"
 
-class MenuState: public State{
+class MenuState: public hakka::State{
 public:
     using Ptr = std::shared_ptr<MenuState>;
 public:
-    MenuState(IStateMachine& machine);
+    MenuState(hakka::IStateMachine& machine);
     ~MenuState()override = default;
 
     void handleEvents(const hakka::Event& event);
