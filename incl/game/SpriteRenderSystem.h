@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka_game - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -23,13 +23,13 @@ source distribution.
 
 #include <vector>
 
-#include "hakka/Drawable.h"
+#include "robot2D/Graphics/Drawable.h"
 #include "System.h"
 
 
 namespace ecs{
 
-    class SpriteRenderSystem: public System, hakka::Drawable{
+    class SpriteRenderSystem: public System, robot2D::Drawable{
     public:
         SpriteRenderSystem();
         ~SpriteRenderSystem()override = default;
@@ -40,8 +40,8 @@ namespace ecs{
         void on_addEntity(Entity entity) override;
 
     private:
-        void draw(hakka::RenderTarget &target,
-                  hakka::RenderStates states) const override;
+        void draw(robot2D::RenderTarget &target,
+                  robot2D::RenderStates states) const override;
 
     private:
 

@@ -1,9 +1,7 @@
-#include <hakka/Event.h>
-
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka_game - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -28,11 +26,11 @@ source distribution.
 #include "game/SpriteRenderSystem.h"
 
 
-EcsState::EcsState(hakka::IStateMachine &machine) : State(machine) {
+EcsState::EcsState(robot2D::IStateMachine &machine) : State(machine) {
     setup();
 }
 
-void EcsState::handleEvents(const hakka::Event& event) {
+void EcsState::handleEvents(const robot2D::Event& event) {
     m_scene.forwardEvent(event);
 }
 
@@ -67,9 +65,9 @@ void EcsState::setup_ecs() {
     }
 //
 //    entity.getComponent<ecs::TransformComponent>()
-//            .setPosition(hakka::vec2f(100.f, 100.f));
+//            .setPosition(robot2D::vec2f(100.f, 100.f));
 //    entity.getComponent<ecs::TransformComponent>()
-//            .setScale(hakka::vec2f(50.f, 50.f));
+//            .setScale(robot2D::vec2f(50.f, 50.f));
 //    entity.getComponent<ecs::SpriteComponent>()
 //            .setTexture(m_textures.get("face"));
 

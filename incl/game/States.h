@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -21,42 +21,11 @@ source distribution.
 
 #pragma once
 
-#include "Transform.h"
-#include "Vector2.h"
+enum States{
+    Intro = 0,
+    Menu = 1,
+    Game = 2,
+    Pause = 3,
+    Ecs = 4
+};
 
-namespace hakka{
-    class Transformable{
-    public:
-        Transformable();
-        virtual ~Transformable() = 0;
-
-
-        void setPosition(const vec2f& pos);
-        vec2f& getPosition();
-
-        void setOrigin(const vec2f& origin);
-        vec2f& getOrigin();
-
-        virtual void setScale(const vec2f& factor);
-        vec2f& getScale();
-
-        void setRotate(const float& angle);
-        float& getRotate();
-
-        void move(const vec2f& offset);
-        void scale(const vec2f& factor);
-        void rotate(float angle);
-
-
-        const Transform& getTransform() const;
-
-    protected:
-         vec2f m_pos;
-         vec2f m_origin;
-         vec2f m_scale_factor;
-
-         float m_rotation;
-         mutable Transform m_tranform;
-         mutable bool m_update_transform;
-    };
-}

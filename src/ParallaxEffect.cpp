@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,28 +19,31 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <glad/glad.h>
-#include "hakka/RenderWindow.h"
+#include "game/ParallaxEffect.h"
 
-namespace hakka{
+ParallaxEffect::ParallaxEffect():
+    m_texture(nullptr) {
 
-    RenderWindow::RenderWindow():
-    Window(),
-    RenderTarget(m_win_size)
-    {
-    }
+}
 
-    RenderWindow::~RenderWindow() {
+void ParallaxEffect::setTexture(const robot2D::Texture &texture) {
+    m_texture = &texture;
+}
 
-    }
+void ParallaxEffect::update(float dt) {
 
-    void RenderWindow::onResize(const int &w, const int &h) {
-        //todo update views
-        glViewport(0, 0, w, h);
-    }
+}
 
-    RenderWindow::RenderWindow(const vec2u &size, const std::string &name, const bool &vsync) : Window(size, name,
-                                                                                                       vsync),
-                                                                                                RenderTarget(m_win_size) {
-    }
+void ParallaxEffect::draw(robot2D::RenderTarget &, robot2D::RenderStates states) const {
+    if(!m_texture)
+        return;
+}
+
+void ParallaxEffect::setup_GL() {
+    if(!m_shaderHandler.createShader(0, ""))
+        return;
+    if(!m_shaderHandler.createShader(0, ""))
+        return;
+
+    m_shaderHandler.use();
 }

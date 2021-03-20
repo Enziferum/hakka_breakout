@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka_game - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,7 +19,7 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "hakka/RenderTarget.h"
+#include "robot2D/Graphics/RenderTarget.h"
 #include "game/Scene.h"
 
 namespace ecs{
@@ -34,7 +34,7 @@ namespace ecs{
         return m_entityBuffer.back();
     }
 
-    void Scene::forwardEvent(const hakka::Event& event) {
+    void Scene::forwardEvent(const robot2D::Event& event) {
 
     }
 
@@ -55,7 +55,7 @@ namespace ecs{
         }
     }
 
-    void Scene::draw(hakka::RenderTarget &target, hakka::RenderStates state) const {
+    void Scene::draw(robot2D::RenderTarget &target, robot2D::RenderStates state) const {
         for(auto& it: m_drawables)
             target.draw(*it);
     }

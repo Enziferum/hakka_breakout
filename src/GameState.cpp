@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+robot2D - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -29,11 +29,12 @@ source distribution.
 #include "game/GameState.h"
 #include "game/Collisions.h"
 #include "game/Audio.h"
+#include "game/States.h"
 
 constexpr float speed = 500.f;
 const float ball_radius = 12.5f;
 
-GameState::GameState(hakka::IStateMachine& machine):
+GameState::GameState(robot2D::IStateMachine& machine):
     State(machine), m_keys(), m_keysProcessed() ,
     m_pause(false){
     std::cout << "Try to setup" <<std::endl;
@@ -49,7 +50,7 @@ void GameState::setup() {
     srand( time(0) );
 
     //load textures
-    m_textures.loadFromFile("background", "res/textures/background.jpg");
+    m_textures.loadFromFile("background", "res/textures/cityskyline.png");
     m_textures.loadFromFile("face","res/textures/awesomeface.png", true);
     m_textures.loadFromFile("block", "res/textures/block.png");
     m_textures.loadFromFile("block_solid", "res/textures/block_solid.png");
@@ -67,11 +68,11 @@ void GameState::setup() {
 
     m_fonts.loadFromFile("game_font", "res/fonts/game_font.ttf");
     m_text.setText("Lives: " + std::to_string(m_lives));
-    m_text.setPos(hakka::vec2f(0, 10));
+    m_text.setPos(robot2D::vec2f(0, 10));
     m_text.setFont(m_fonts.get("game_font"));
 
     m_postProcessing.set_size(m_window.get_size());
-    m_particleEmitter.setTexture(const_cast<hakka::Texture &>(m_textures.get("particle")));
+    m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get("particle")));
     auto size = m_window.get_size();
 
     //todo load all from special folder
@@ -81,11 +82,11 @@ void GameState::setup() {
     Level three;
     Level four;
 
-    //zero.loadLevel("res/levels/0.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
-    one.loadLevel("res/levels/1.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
-    two.loadLevel("res/levels/2.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
-    three.loadLevel("res/levels/3.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
-    four.loadLevel("res/levels/4.lvl", hakka::vec2f(size.x, size.y / 2), m_textures);
+    //zero.loadLevel("res/levels/0.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
+    one.loadLevel("res/levels/1.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
+    two.loadLevel("res/levels/2.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
+    three.loadLevel("res/levels/3.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
+    four.loadLevel("res/levels/4.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
 
     //m_levels.push_back(zero);
     m_levels.push_back(one);
@@ -96,25 +97,25 @@ void GameState::setup() {
     //todo load all from special folder
 
     m_background.setTexture(m_textures.get("background"));
-    m_background.setPosition(hakka::vec2f(0.f, 0.f));
-    m_background.setScale(hakka::vec2f(size.x, size.y));
+    m_background.setPosition(robot2D::vec2f(0.f, 0.f));
+    m_background.setScale(robot2D::vec2f(size.x, size.y));
 
     m_paddle.m_sprite.setTexture(m_textures.get("paddle"));
-    hakka::vec2f paddle_size(100.f, 20.f);
-    m_paddle.setPos(hakka::vec2f(size.x / 2.f - paddle_size.x / 2,
+    robot2D::vec2f paddle_size(100.f, 20.f);
+    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
                     size.y - paddle_size.y));
     m_paddle.setSize(paddle_size);
 
 
 
-    hakka::vec2f ballPos =  hakka::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
+    robot2D::vec2f ballPos =  robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                                     -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.m_sprite.setTexture(m_textures.get("face"));
-    m_ball.velocity = hakka::vec2f(100.0f, -350.0f);
+    m_ball.velocity = robot2D::vec2f(100.0f, -350.0f);
     m_ball.border = size.x;
     m_ball.radius = ball_radius;
     m_ball.setPos(ballPos);
-    m_ball.setSize(hakka::vec2f(ball_radius * 2.f, ball_radius * 2.f));
+    m_ball.setSize(robot2D::vec2f(ball_radius * 2.f, ball_radius * 2.f));
 
     Audio::getInstanse() -> loadFile("res/audio/bleep_1.wav",
                                         "bleep_1", AudioType::sound);
@@ -127,34 +128,34 @@ void GameState::setup() {
 }
 
 
-void GameState::handleEvents(const hakka::Event& event) {
+void GameState::handleEvents(const robot2D::Event& event) {
     if(m_pause) {
-        if(event.type == hakka::Event::KeyPressed) {
+        if(event.type == robot2D::Event::KeyPressed) {
             if (event.key.code == GLFW_KEY_ESCAPE)
                 m_pause = false;
         }
         return;
     }
 
-    if(event.type == hakka::Event::KeyPressed){
+    if(event.type == robot2D::Event::KeyPressed){
         if (event.key.code == GLFW_KEY_ESCAPE)
             m_pause = true;
     }
 
 
-    if(event.type == hakka::Event::KeyPressed){
+    if(event.type == robot2D::Event::KeyPressed){
         m_keys[event.key.code] = true;
     }
 
-    if(event.type == hakka::Event::KeyReleased){
+    if(event.type == robot2D::Event::KeyReleased){
         m_keys[event.key.code] = false;
         m_keysProcessed[event.key.code] = false;
     }
 
 
-    if(event.type == hakka::Event::MouseButton){
-        if(event.mouse.btn == hakka::Event::MouseButtonEvent::left){
-            hakka::vec2f mouse_pos(event.mouse.x, event.mouse.y);
+    if(event.type == robot2D::Event::MouseButton){
+        if(event.mouse.btn == robot2D::Event::MouseButtonEvent::left){
+            robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
             std::cout << event.mouse.x << ":" << event.mouse.y << std::endl;
         }
     }
@@ -178,8 +179,8 @@ void GameState::update(float dt) {
     }
 
     m_levels[currlevel].update(dt);
-
-    m_particleEmitter.update(dt, 2, m_ball, hakka::vec2f(6.25f,
+    m_parallax.update(dt);
+    m_particleEmitter.update(dt, 2, m_ball, robot2D::vec2f(6.25f,
                                                          6.25f));
     update_powerups(dt);
     if(m_levels[currlevel].destroyed())
@@ -260,14 +261,14 @@ void GameState::update_powerups(float dt) {
                 case PowerUpType::wallbreaker:
                     if(IsOtherPowerUpActive(m_power_ups, PowerUpType::wallbreaker))
                         break;
-                    m_ball.color = hakka::Color::White;
+                    m_ball.color = robot2D::Color::White;
                     m_ball.wallbreaker = false;
                     break;
                 case PowerUpType::sticky:
                     if(IsOtherPowerUpActive(m_power_ups, PowerUpType::sticky))
                         break;
                     m_ball.sticky = false;
-                    m_ball.color = hakka::Color::White;
+                    m_ball.color = robot2D::Color::White;
                     break;
                 default:
                     break;
@@ -283,6 +284,7 @@ void GameState::update_powerups(float dt) {
 
 void GameState::render() {
     m_postProcessing.preRender();
+    m_window.draw(m_parallax);
     m_window.draw(m_background);
     m_window.draw(m_levels[currlevel]);
     m_window.draw(m_paddle);
@@ -344,7 +346,7 @@ void GameState::process_collisions(float dt) {
             // then move accordingly
 
             float strength = 2.0f;
-            hakka::vec2f oldVelocity = m_ball.velocity;
+            robot2D::vec2f oldVelocity = m_ball.velocity;
             m_ball.velocity.x = 100.f * percentage * strength;
             m_ball.velocity.y = -1.0f * std::abs(-m_ball.velocity.y);
             m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
@@ -367,7 +369,7 @@ void GameState::process_collisions(float dt) {
 
 void GameState::reset_game() {
     if(m_lives == 0){
-        m_machine.pushState(1);
+        m_machine.pushState(States::Intro);
         m_lives = 3;
         return;
     }
@@ -378,10 +380,10 @@ void GameState::reset_game() {
 
 
     auto size = m_window.get_size();
-    hakka::vec2f paddle_size(100.f, 20.f);
-    m_paddle.setPos(hakka::vec2f(size.x / 2.f - paddle_size.x / 2,
+    robot2D::vec2f paddle_size(100.f, 20.f);
+    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
                                  size.y - paddle_size.y));
-    hakka::vec2f ballPos = hakka::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
+    robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                          -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.stuck = true;
     m_ball.setPos(ballPos);
@@ -398,43 +400,43 @@ void GameState::spawn_power_up(GameObject& box) {
     if (ShouldSpawn(75)){
       power_up.m_type = PowerUpType::speed;
       power_up.m_sprite.setTexture(m_textures.get("speed"));
-      power_up.color = hakka::Color::from_gl(0.5f, 0.5f, 1.0f);
+      power_up.color = robot2D::Color::from_gl(0.5f, 0.5f, 1.0f);
       power_up.duration = 0.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::sticky;
         power_up.m_sprite.setTexture(m_textures.get("sticky"));
-        power_up.color = hakka::Color::from_gl(1.0f, 0.5f, 1.0f);
+        power_up.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
         power_up.duration = 20.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::wallbreaker;
         power_up.m_sprite.setTexture(m_textures.get("wallbreaker"));
-        power_up.color = hakka::Color::from_gl(0.5f, 1.0f, 0.5f);
+        power_up.color = robot2D::Color::from_gl(0.5f, 1.0f, 0.5f);
         power_up.duration = 10.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::size;
         power_up.m_sprite.setTexture(m_textures.get("size"));
-        power_up.color = hakka::Color::from_gl(1.0f, 0.6f, 0.4f);
+        power_up.color = robot2D::Color::from_gl(1.0f, 0.6f, 0.4f);
         power_up.duration = 0.f;
     }
     if (ShouldSpawn(15)) {
         power_up.m_type = PowerUpType::confuse;
         power_up.m_sprite.setTexture(m_textures.get("confuse"));
-        power_up.color = hakka::Color::from_gl(1.0f, 0.3f, 0.3f);
+        power_up.color = robot2D::Color::from_gl(1.0f, 0.3f, 0.3f);
         power_up.duration = 15.f;
     }// Negative powerups should spawn more often
 
     if (ShouldSpawn(15)){
         power_up.m_type = PowerUpType::chaos;
         power_up.m_sprite.setTexture(m_textures.get("chaos"));
-        power_up.color = hakka::Color::from_gl(0.9f, 0.25f, 0.25f);
+        power_up.color = robot2D::Color::from_gl(0.9f, 0.25f, 0.25f);
         power_up.duration = 15.f;
     }
     power_up.setPos(box.m_pos);
-    power_up.setSize(hakka::vec2f(60.0f, 20.0f));
-    power_up.velocity = hakka::vec2f(0.0f, 150.f);
+    power_up.setSize(robot2D::vec2f(60.0f, 20.0f));
+    power_up.velocity = robot2D::vec2f(0.0f, 150.f);
     m_power_ups.emplace_back(power_up);
 }
 
@@ -447,12 +449,12 @@ void GameState::activate_power(PowerUp& power) {
             break;
         case PowerUpType::wallbreaker:
             //
-            m_ball.color = hakka::Color::from_gl(1.0f, 0.5f, 0.5f);
+            m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 0.5f);
            // m_ball.wallbreaker = true;
             break;
         case PowerUpType::sticky:
             //
-            m_ball.color = hakka::Color::from_gl(1.0f, 0.5f, 1.0f);
+            m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
             m_ball.sticky = true;
         case PowerUpType::speed:
             m_ball.velocity = m_ball.velocity * 1.2;
@@ -476,10 +478,10 @@ void GameState::changeLevel() {
 
 
     auto size = m_window.get_size();
-    hakka::vec2f paddle_size(100.f, 20.f);
-    m_paddle.setPos(hakka::vec2f(size.x / 2.f - paddle_size.x / 2,
+    robot2D::vec2f paddle_size(100.f, 20.f);
+    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
                                  size.y - paddle_size.y));
-    hakka::vec2f ballPos = hakka::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
+    robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                         -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.stuck = true;
     m_ball.setPos(ballPos);

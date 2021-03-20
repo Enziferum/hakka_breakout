@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -21,46 +21,23 @@ source distribution.
 
 #pragma once
 
-namespace hakka{
-    class Event{
-    public:
-        enum EventType {
-            MouseMoved,
-            MouseWheel,
-            MouseButton,
-            KeyPressed,
-            KeyReleased,
-            Count
-        };
+#include "robot2D/Graphics/Drawable.h"
+#include "robot2D/Graphics/Texture.h"
+#include "robot2D/Graphics/Shader.h"
 
-        EventType type;
+class ParallaxEffect: public robot2D::Drawable{
+public:
+    ParallaxEffect();
+    ~ParallaxEffect() = default;
 
+    void setTexture(const robot2D::Texture& texture);
+    void update(float dt);
+protected:
+    virtual void draw(robot2D::RenderTarget&, robot2D::RenderStates states) const override;
 
-        struct MouseMoveEvent{
-            float x;
-            float y;
-        };
-
-        struct KeyboardEvent{
-            int code;
-        };
-
-        struct MouseButtonEvent{
-            enum buttons {
-                left = 0,
-                right = 1,
-                middle = 2
-            };
-            int btn;
-            int x;
-            int y;
-        };
-
-        union {
-            MouseMoveEvent moveEvent;
-            MouseButtonEvent mouse;
-            KeyboardEvent key;
-        };
-
-    };
-}
+private:
+    void setup_GL();
+private:
+    robot2D::ShaderHandler m_shaderHandler;
+    const robot2D::Texture* m_texture;
+};

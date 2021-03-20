@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka_game - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -21,20 +21,20 @@ source distribution.
 
 #pragma once
 
-#include "hakka/ResourceHandler.h"
-#include "hakka/IStateMachine.h"
-#include "hakka/State.h"
+#include "robot2D/Util/ResourceHandler.h"
+#include "robot2D/Core/IStateMachine.h"
+#include "robot2D/Core/State.h"
 #include "Scene.h"
 
-class EcsState: public hakka::State{
+class EcsState: public robot2D::State{
 public:
     using Ptr = std::shared_ptr<EcsState>;
 public:
-    EcsState(hakka::IStateMachine& machine);
+    EcsState(robot2D::IStateMachine& machine);
     ~EcsState()override = default;
 
 
-    void handleEvents(const hakka::Event &event) override;
+    void handleEvents(const robot2D::Event &event) override;
     void update(float dt) override;
     void render() override;
 
@@ -43,5 +43,5 @@ private:
     void setup_ecs();
 private:
     ecs::Scene m_scene;
-    hakka::ResourceHandler<hakka::Texture> m_textures;
+    robot2D::ResourceHandler<robot2D::Texture> m_textures;
 };

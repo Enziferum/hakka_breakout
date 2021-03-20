@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka_game - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -35,15 +35,15 @@ namespace ecs{
 
     }
 
-    void SpriteComponent::setTexture(const hakka::Texture &texture) {
+    void SpriteComponent::setTexture(const robot2D::Texture &texture) {
 
     }
 
-    hakka::Texture &SpriteComponent::getTexture() {
-        return const_cast<hakka::Texture &>(*m_texture);
+    robot2D::Texture &SpriteComponent::getTexture() {
+        return const_cast<robot2D::Texture &>(*m_texture);
     }
 
-    const hakka::Texture &SpriteComponent::getTexture() const {
+    const robot2D::Texture &SpriteComponent::getTexture() const {
         return *m_texture;
     }
 

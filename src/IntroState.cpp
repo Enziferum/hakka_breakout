@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-hakka - Zlib license.
+robot2D - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -20,14 +20,17 @@ source distribution.
 *********************************************************************/
 
 #include <iostream>
+
 #include "game/IntroState.h"
+#include "game/States.h"
 
 constexpr float second = 1000.f;
 
 Timer::Timer():
-to_time(1.f),
-t(0.f),
-m_endless(false) {
+to_time(1.f), t(0.f),
+m_endless(false)
+{
+
 }
 
 void Timer::update(float dt) {
@@ -58,7 +61,7 @@ void Timer::reset(float time) {
 }
 
 
-IntroState::IntroState(hakka::IStateMachine& machine) :
+IntroState::IntroState(robot2D::IStateMachine& machine) :
     State(machine),
     m_timer(){
 
@@ -68,26 +71,27 @@ IntroState::IntroState(hakka::IStateMachine& machine) :
 void IntroState::setup() {
     auto size = m_window.get_size();
 
-    if(!m_texture.loadFromFile("res/textures/hakka.png", true)) {
+    if(!m_texture.loadFromFile("res/textures/robot2D.png", true)) {
         std::cout << "cant load texture" <<std::endl;
         return;
     }
 
     m_background.setTexture(m_texture);
-    m_background.setScale(hakka::vec2f(256.f, 256.f));
+    m_background.setScale(robot2D::vec2f(512.f, 512.f));
     auto tx_size = m_texture.get_size();
-    m_background.setPosition(hakka::vec2f(size.x / 2.f - tx_size.x / 2,
+
+    m_background.setPosition(robot2D::vec2f(size.x / 2.f - tx_size.x / 2,
                                           size.y / 2.f - tx_size.y / 2));
 
-    m_background.setColor(hakka::Color::Green);
+    //m_background.setColor(robot2D::Color::Green);
     m_timer.onTick([this](float dt){
         m_timer.reset();
-        m_machine.pushState(2);
+        m_machine.pushState(States::Game);
     });
 }
 
-void IntroState::handleEvents(const hakka::Event& event) {
-    if(event.type == hakka::Event::KeyPressed &&
+void IntroState::handleEvents(const robot2D::Event& event) {
+    if(event.type == robot2D::Event::KeyPressed &&
     event.key.code == GLFW_KEY_SPACE){
         if(m_timer.elapsed() >= 1.f){
             m_machine.pushState(2);
