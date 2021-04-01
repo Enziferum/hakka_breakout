@@ -33,6 +33,10 @@ enum class AudioType{
     sound
 };
 
+enum class AudioFileID {
+
+};
+
 class Audio{
 public:
     static Audio* getInstanse();

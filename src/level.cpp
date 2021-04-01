@@ -37,9 +37,7 @@ std::map<int, robot2D::Color> tile_colors = {
 };
 
 
-Level::Level() {
-
-}
+Level::Level(): m_tiles() {}
 
 bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
                       const robot2D::ResourceHandler<robot2D::Texture>& handler) {
@@ -121,6 +119,10 @@ bool Level::destroyed() const {
         res *= it.m_destroyed;
 
     return res;
+}
+
+std::vector<GameObject> &Level::getTiles() {
+    return m_tiles;
 }
 
 

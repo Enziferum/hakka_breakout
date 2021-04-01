@@ -21,6 +21,7 @@ source distribution.
 
 #include <cmath>
 #include <stdexcept>
+
 #include <SFML/Audio/Listener.hpp>
 
 #include "game/Audio.h"
@@ -66,10 +67,6 @@ void Audio::play(const char* id, bool looped) {
         sf::Sound &sound = m_sounds.back();
 
         sound.setBuffer(m_soundBuffers[id]);
-        //sf::Vector3f position = sf::Listener::getPosition();
-        //sound.setPosition(position.x, -position.y, 0.f);
-        //sound.setAttenuation(Attenuation);
-        //sound.setMinDistance(MinDistance3D);
         sound.setLoop(looped);
         sound.play();
     }
@@ -82,9 +79,8 @@ void Audio::play(const char* id, bool looped) {
 void Audio::stop(const char* id) {
     if(getType(id) == AudioType::sound) {
     }
-    if(getType(id) == AudioType::music) {
+    if(getType(id) == AudioType::music)
         m_music.stop();
-    }
 }
 
 

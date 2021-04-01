@@ -20,6 +20,7 @@ source distribution.
 *********************************************************************/
 
 #pragma once
+
 #include <tuple>
 #include "GameObject.h"
 

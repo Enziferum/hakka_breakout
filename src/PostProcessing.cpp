@@ -19,10 +19,11 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <robot2D/Graphics/GL.h>
 #include <iostream>
 
-#include "robot2D/Graphics/RenderTarget.h"
+#include <robot2D/Graphics/GL.h>
+#include <robot2D/Graphics/RenderTarget.h>
+
 #include "game/PostProcessing.h"
 
 PostProcessing::PostProcessing(): m_size(800, 600),
@@ -55,6 +56,7 @@ void PostProcessing::draw(robot2D::RenderTarget& target, robot2D::RenderStates s
     target.draw(states);
 }
 
+//rewrite this function
 void PostProcessing::setup_GL() {
     if(!m_effectShader.createShader(0x8B31,"res/shaders/effects.vs"))
         return;
@@ -66,12 +68,14 @@ void PostProcessing::setup_GL() {
     glGenFramebuffers(1, &this->FBO);
     glGenRenderbuffers(1, &this->RBO);
     // initialize renderbuffer storage with a multisampled color buffer (don't need a depth/stencil buffer)
+
     glBindFramebuffer(GL_FRAMEBUFFER, this->MSFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, this->RBO);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGB, m_size.x, m_size.y); // allocate storage for render buffer object
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->RBO); // attach MS render buffer object to framebuffer
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::POSTPROCESSOR: Failed to initialize MSFBO" << std::endl;
+
     // also initialize the FBO/texture to blit multisampled color-buffer to; used for shader operations (for postprocessing effects)
     glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
     m_texture.generate(m_size, NULL);
@@ -79,6 +83,7 @@ void PostProcessing::setup_GL() {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::POSTPROCESSOR: Failed to initialize FBO" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // initialize render data and uniforms
     m_effectShader.use();
     m_effectShader.set_parameter("scene", 0);
@@ -95,6 +100,9 @@ void PostProcessing::setup_GL() {
             {  0.0f,   -offset  },  // bottom-center
             {  offset, -offset  }   // bottom-right
     };
+
+    //allow shaders to set directly
+
     glUniform2fv(glGetUniformLocation(m_effectShader.getProgram(), "offsets"), 9, (float*)offsets);
     int edge_kernel[9] = {
             -1, -1, -1,
@@ -130,7 +138,9 @@ void PostProcessing::set_size(const robot2D::vec2u& size) {
     m_size = size;
 }
 
+//why we need custom VBO ??
 void PostProcessing::init_RenderData() {
+
     unsigned int VBO;
     float vertices[] = {
             // pos        // tex

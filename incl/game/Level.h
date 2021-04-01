@@ -41,9 +41,7 @@ public:
 
     void update(float dt);
 
-    std::vector<GameObject>& getTiles(){
-        return m_tiles;
-    }
+    std::vector<GameObject>& getTiles();
     bool destroyed() const;
 protected:
     void draw(robot2D::RenderTarget& target,

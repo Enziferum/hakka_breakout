@@ -40,9 +40,6 @@ GameState::GameState(robot2D::IStateMachine& machine):
     setup();
 }
 
-GameState::~GameState() {
-}
-
 
 void GameState::setup() {
 

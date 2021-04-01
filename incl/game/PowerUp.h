@@ -40,9 +40,9 @@ public:
 
 
 public:
-    PowerUpType m_type;
-    bool activated;
     robot2D::vec2f velocity;
-    float duration;
     robot2D::Color color;
+    PowerUpType m_type;
+    float duration;
+    bool activated;
 };

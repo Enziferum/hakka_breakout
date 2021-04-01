@@ -17,9 +17,7 @@ file(GLOB SRC src/*.cpp)
 
 #for demo moves
 
-add_subdirectory(ecs/robot2D_ecs)
-
-set(LIBS robot2D robot2D_ecs sfml-audio)
+set(LIBS robot2D sfml-audio)
 
 add_executable(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME} ${LIBS})

@@ -42,7 +42,7 @@ public:
     robot2D::Color color;
 };
 
-class BallObject: public GameObject{
+class BallObject: public GameObject {
 public:
     BallObject();
     ~BallObject() = default;

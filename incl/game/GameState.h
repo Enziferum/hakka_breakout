@@ -36,19 +36,17 @@ source distribution.
 
 class GameState: public robot2D::State{
 public:
-    using Ptr = std::shared_ptr<GameState>;
-public:
     GameState(robot2D::IStateMachine& machine);
-    ~GameState() override;
+    ~GameState() override = default;
 
     void handleEvents(const robot2D::Event& event) override;
     void update(float dt) override;
     void render() override;
-
 private:
+    void setup();
+
     void process_input(float dt);
     void update_powerups(float dt);
-    void setup();
     void process_collisions(float dt);
 
     void reset_game();
@@ -65,7 +63,6 @@ private:
     PostProcessing m_postProcessing;
     ParticleEmitter m_particleEmitter;
 
-    float shakeTime = 0.0f;
 
     GameObject m_paddle;
     BallObject m_ball;
