@@ -41,11 +41,17 @@ public:
 
     void update(float dt);
 
-    std::vector<GameObject>& getTiles();
+    void onResize(const robot2D::vec2f& size);
+
     bool destroyed() const;
+    std::vector<GameObject>& getTiles();
 protected:
     void draw(robot2D::RenderTarget& target,
               robot2D::RenderStates states) const override;
 private:
     std::vector<GameObject> m_tiles;
+    robot2D::vec2f m_size;
+
+    //size of level
+    size_t rw, rh;
 };

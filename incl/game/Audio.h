@@ -34,7 +34,11 @@ enum class AudioType{
 };
 
 enum class AudioFileID {
-
+    breakout,
+    bleep,
+    bleep_1,
+    solid,
+    power_up,
 };
 
 class Audio{
@@ -46,27 +50,27 @@ public:
     Audio& operator=(const Audio&&)=delete;
     ~Audio() = default;
 
-    bool loadFile(const char* filename, const char* id, AudioType type);
+    bool loadFile(const char* filename, AudioFileID id, AudioType type);
 
-    void play(const char* id, bool looped = false);
-    void stop(const char* id);
+    void play(AudioFileID, bool looped = false);
+    void stop(AudioFileID);
 
-    void pause(const char* id, bool status);
+    void pause(AudioFileID, bool status);
 
-    void setVolume(const char* id, const float& volume);
-    const float& getVolume(const char* id) const;
+    void setVolume(AudioFileID, const float& volume);
+    const float& getVolume(AudioFileID) const;
 
     void update_sounds();
 private:
     Audio() = default;
 
-    AudioType getType(const char* id);
+    AudioType getType(AudioFileID id);
 private:
     sf::Music m_music;
     std::list<sf::Sound> m_sounds;
-    std::map<std::string, float> m_volumes;
-    std::map<std::string, sf::SoundBuffer> m_soundBuffers;
-    std::map<std::string, AudioType> m_audiotypes;
+    std::map<AudioFileID, float> m_volumes;
+    std::map<AudioFileID, sf::SoundBuffer> m_soundBuffers;
+    std::map<AudioFileID, AudioType> m_audiotypes;
 };
 
 

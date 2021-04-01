@@ -19,10 +19,23 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/PowerUp.h"
+#include "game/InputManager.h"
 
-PowerUp::PowerUp():
-    GameObject(), activated(false){
-
+InputManager::InputManager():
+    m_keys() {
+    setup_default();
 }
 
+
+
+void InputManager::setup_default() {
+    m_keys[leftMove] = robot2D::Key::A;
+    m_keys[leftMove] = robot2D::LEFT;
+}
+
+robot2D::Key InputManager::getKey(const InputMaps &maps) {
+    auto found = m_keys.find(maps);
+    if(found == m_keys.end())
+        return robot2D::Key::Unknown;
+    return found->second;
+}

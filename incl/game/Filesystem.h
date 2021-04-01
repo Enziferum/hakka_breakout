@@ -19,10 +19,15 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/PowerUp.h"
+#pragma once
 
-PowerUp::PowerUp():
-    GameObject(), activated(false){
+class Filesystem{
+public:
+    Filesystem();
+    ~Filesystem() = default;
 
-}
 
+    std::vector<std::string> getFiles(const std::string& directory);
+private:
+    std::string m_basepath;
+};

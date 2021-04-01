@@ -19,10 +19,17 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/PowerUp.h"
+#pragma once
 
-PowerUp::PowerUp():
-    GameObject(), activated(false){
+class World {
+public:
+    World();
+    World(const World& ) = delete;
+    World(const World&& ) = delete;
+    World& operator=(const World& ) = delete;
+    World& operator=(const World&& ) = delete;
+    ~World() = default;
 
-}
 
+private:
+};

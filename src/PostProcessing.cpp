@@ -26,7 +26,8 @@ source distribution.
 
 #include "game/PostProcessing.h"
 
-PostProcessing::PostProcessing(): m_size(800, 600),
+PostProcessing::PostProcessing():
+m_size(800, 600),
 m_shake(false),
 m_chaos(false),
 m_confuse(false){
@@ -64,20 +65,20 @@ void PostProcessing::setup_GL() {
     if(!m_effectShader.createShader(0x8B30,"res/shaders/effects.fs"))
         return;
 
-    glGenFramebuffers(1, &this->MSFBO);
-    glGenFramebuffers(1, &this->FBO);
-    glGenRenderbuffers(1, &this->RBO);
+    glGenFramebuffers(1, &MSFBO);
+    glGenFramebuffers(1, &FBO);
+    glGenRenderbuffers(1, &RBO);
     // initialize renderbuffer storage with a multisampled color buffer (don't need a depth/stencil buffer)
 
-    glBindFramebuffer(GL_FRAMEBUFFER, this->MSFBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, this->RBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, MSFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGB, m_size.x, m_size.y); // allocate storage for render buffer object
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->RBO); // attach MS render buffer object to framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RBO); // attach MS render buffer object to framebuffer
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::POSTPROCESSOR: Failed to initialize MSFBO" << std::endl;
 
     // also initialize the FBO/texture to blit multisampled color-buffer to; used for shader operations (for postprocessing effects)
-    glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     m_texture.generate(m_size, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.get_id(), 0); // attach texture to framebuffer as its color attachment
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

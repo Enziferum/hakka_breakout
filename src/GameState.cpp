@@ -23,31 +23,34 @@ source distribution.
 #include <algorithm>
 #include <ctime>
 
-//todo own keys
-#include <GLFW/glfw3.h>
+#include <robot2D/Core/Keyboard.h>
 
 #include "game/GameState.h"
 #include "game/Collisions.h"
 #include "game/Audio.h"
 #include "game/States.h"
 
+//work on constants where saving ??
 constexpr float speed = 500.f;
 const float ball_radius = 12.5f;
+constexpr int max_lives = 3;
+constexpr unsigned int emitter_new_sz = 2;
+const robot2D::vec2f ball_velocity(100.0f, -350.0f);
+const robot2D::vec2f paddle_size(100.f, 20.f);
 
 GameState::GameState(robot2D::IStateMachine& machine):
     State(machine), m_keys(), m_keysProcessed() ,
-    m_pause(false){
+    m_pause(false),
+    m_lives(max_lives),
+    last_lives(max_lives){
     setup();
 }
 
 
-void GameState::setup() {
-
-    srand( time(0) );
-
+void GameState::load_resources() {
     //load textures
     m_textures.loadFromFile("background", "res/textures/cityskyline.png");
-    m_textures.loadFromFile("face","res/textures/awesomeface.png", true);
+    m_textures.loadFromFile("face", "res/textures/awesomeface.png", true);
     m_textures.loadFromFile("block", "res/textures/block.png");
     m_textures.loadFromFile("block_solid", "res/textures/block_solid.png");
     m_textures.loadFromFile("paddle", "res/textures/paddle.png", true);
@@ -63,13 +66,6 @@ void GameState::setup() {
     //powerups
 
     m_fonts.loadFromFile("game_font", "res/fonts/game_font.ttf");
-    m_text.setText("Lives: " + std::to_string(m_lives));
-    m_text.setPos(robot2D::vec2f(0, 10));
-    m_text.setFont(m_fonts.get("game_font"));
-
-    m_postProcessing.set_size(m_window.get_size());
-    m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get("particle")));
-    auto size = m_window.get_size();
 
     //todo load all from special folder
     Level zero;
@@ -78,11 +74,14 @@ void GameState::setup() {
     Level three;
     Level four;
 
-    //zero.loadLevel("res/levels/0.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
-    one.loadLevel("res/levels/1.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
-    two.loadLevel("res/levels/2.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
-    three.loadLevel("res/levels/3.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
-    four.loadLevel("res/levels/4.lvl", robot2D::vec2f(size.x, size.y / 2), m_textures);
+    one.loadLevel("res/levels/1.lvl", robot2D::vec2f(m_windowSize.x,
+                                                      m_windowSize.y / 2), m_textures);
+    two.loadLevel("res/levels/2.lvl", robot2D::vec2f(m_windowSize.x,
+                                                     m_windowSize.y / 2), m_textures);
+    three.loadLevel("res/levels/3.lvl", robot2D::vec2f(m_windowSize.x,
+                                                       m_windowSize.y / 2), m_textures);
+    four.loadLevel("res/levels/4.lvl", robot2D::vec2f(m_windowSize.x,
+                                                      m_windowSize.y / 2), m_textures);
 
     //m_levels.push_back(zero);
     m_levels.push_back(one);
@@ -92,52 +91,72 @@ void GameState::setup() {
 
     //todo load all from special folder
 
+}
+
+void GameState::setup() {
+    srand(time(0));
+
+    auto size = m_window.get_size();
+    m_windowSize = size;
+
+    load_resources();
+
+    m_text.setText("Lives: " + std::to_string(m_lives));
+    m_text.setPos(robot2D::vec2f(0, 10));
+    m_text.setFont(m_fonts.get("game_font"));
+
+    m_postProcessing.set_size(m_windowSize);
+    m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get("particle")));
+
     m_background.setTexture(m_textures.get("background"));
     m_background.setPosition(robot2D::vec2f(0.f, 0.f));
     m_background.setScale(robot2D::vec2f(size.x, size.y));
 
     m_paddle.m_sprite.setTexture(m_textures.get("paddle"));
-    robot2D::vec2f paddle_size(100.f, 20.f);
     m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
                     size.y - paddle_size.y));
     m_paddle.setSize(paddle_size);
 
 
-
-    robot2D::vec2f ballPos =  robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
+    robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                                     -ball_radius * 2.0f + m_paddle.m_pos.y);
+
     m_ball.m_sprite.setTexture(m_textures.get("face"));
-    m_ball.velocity = robot2D::vec2f(100.0f, -350.0f);
+    m_ball.velocity = ball_velocity;
     m_ball.border = size.x;
     m_ball.radius = ball_radius;
     m_ball.setPos(ballPos);
     m_ball.setSize(robot2D::vec2f(ball_radius * 2.f, ball_radius * 2.f));
 
     Audio::getInstanse() -> loadFile("res/audio/bleep_1.wav",
-                                        "bleep_1", AudioType::sound);
+                                        AudioFileID::bleep_1, AudioType::sound);
     Audio::getInstanse() -> loadFile("res/audio/bleep.wav",
-                                    "bleep", AudioType::sound);
+                                     AudioFileID::bleep, AudioType::sound);
     Audio::getInstanse() -> loadFile("res/audio/solid.wav",
-                                    "solid", AudioType::sound);
+                                     AudioFileID::solid, AudioType::sound);
     Audio::getInstanse() -> loadFile("res/audio/powerup.wav",
-                                    "power_up", AudioType::sound);
+                                     AudioFileID::power_up, AudioType::sound);
 }
 
 
 void GameState::handleEvents(const robot2D::Event& event) {
+    if (event.type == robot2D::Event::Resized) {
+        onResize(robot2D::vec2f(event.size.widht, event.size.heigth));
+    }
+
     if(m_pause) {
         if(event.type == robot2D::Event::KeyPressed) {
-            if (event.key.code == GLFW_KEY_ESCAPE)
+            if (event.key.code == robot2D::Key::ESCAPE)
                 m_pause = false;
         }
         return;
     }
 
+
     if(event.type == robot2D::Event::KeyPressed){
-        if (event.key.code == GLFW_KEY_ESCAPE)
+        if (event.key.code == robot2D::Key::ESCAPE)
             m_pause = true;
     }
-
 
     if(event.type == robot2D::Event::KeyPressed){
         m_keys[event.key.code] = true;
@@ -148,8 +167,7 @@ void GameState::handleEvents(const robot2D::Event& event) {
         m_keysProcessed[event.key.code] = false;
     }
 
-
-    if(event.type == robot2D::Event::MouseButton){
+    if(event.type == robot2D::Event::MousePressed){
         if(event.mouse.btn == robot2D::Event::MouseButtonEvent::left){
             robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
             std::cout << event.mouse.x << ":" << event.mouse.y << std::endl;
@@ -166,7 +184,7 @@ void GameState::update(float dt) {
     m_ball.move(dt);
 
     //need reset level
-    if(m_ball.m_pos.y >= 600)
+    if(m_ball.m_pos.y >= m_windowSize.y)
         reset_game();
 
     if(last_lives != m_lives){
@@ -176,11 +194,13 @@ void GameState::update(float dt) {
 
     m_levels[currlevel].update(dt);
     m_parallax.update(dt);
-    m_particleEmitter.update(dt, 2, m_ball, robot2D::vec2f(6.25f,
+    m_particleEmitter.update(dt, emitter_new_sz, m_ball, robot2D::vec2f(6.25f,
                                                          6.25f));
     update_powerups(dt);
+    //todo in other way
     if(m_levels[currlevel].destroyed())
         changeLevel();
+
     m_postProcessing.update(dt);
     Audio::getInstanse() -> update_sounds();
 }
@@ -190,7 +210,7 @@ void GameState::process_input(float dt) {
     // input update //
     float velocity = dt * speed;
 
-    if(m_keys[GLFW_KEY_A]) {
+    if(m_keys[robot2D::A]) {
         if (m_paddle.m_pos.x >= 0.f) {
             m_paddle.m_pos.x -= velocity;
             m_paddle.m_sprite.setPosition(m_paddle.m_pos);
@@ -201,8 +221,9 @@ void GameState::process_input(float dt) {
         }
     }
 
-    if(m_keys[GLFW_KEY_D]) {
-        if (m_paddle.m_pos.x <= 800 - m_paddle.m_size.x) {
+    if(m_keys[robot2D::D]) {
+        if (m_paddle.m_pos.x <= m_windowSize.x
+                                - m_paddle.m_size.x) {
             m_paddle.m_pos.x += velocity;
             m_paddle.m_sprite.setPosition(m_paddle.m_pos);
 
@@ -213,10 +234,9 @@ void GameState::process_input(float dt) {
         }
     }
 
-    if(m_keys[GLFW_KEY_SPACE]){
+    if(m_keys[robot2D::SPACE]) {
         m_ball.stuck = false;
     }
-    // update input //
 }
 
 bool IsOtherPowerUpActive(std::vector<PowerUp> &powerUps, PowerUpType type)
@@ -306,10 +326,10 @@ void GameState::process_collisions(float dt) {
             if (!box.m_solid) {
                 spawn_power_up(box);
                 box.m_destroyed = true;
-                Audio::getInstanse()->play("bleep_1");
+                Audio::getInstanse()->play(AudioFileID::bleep_1);
             } else {
                 m_postProcessing.setValue("shake", true);
-                Audio::getInstanse()->play("solid");
+                Audio::getInstanse()->play(AudioFileID::solid);
             }
 
 
@@ -335,27 +355,27 @@ void GameState::process_collisions(float dt) {
             }
         }
         collision = checkCollision(m_ball, m_paddle);
-        if(!m_ball.stuck && std::get<0>(collision)){
+
+        if(!m_ball.stuck && std::get<0>(collision)) {
             float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.0f;
             float distance = (m_ball.m_pos.x + m_ball.radius) - centerBoard;
             float percentage = distance / (m_paddle.m_size.x / 2.0f);
             // then move accordingly
 
-            float strength = 2.0f;
+            float strength = 2.f;
             robot2D::vec2f oldVelocity = m_ball.velocity;
             m_ball.velocity.x = 100.f * percentage * strength;
-            m_ball.velocity.y = -1.0f * std::abs(-m_ball.velocity.y);
+            m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
             m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
-            //Audio::getInstanse() -> play("solid");
         }
     }
 
     for(auto& powerit: m_power_ups){
         auto collision = checkCollision(powerit, m_paddle);
-        if(powerit.m_pos.y >= 600)
+        if(powerit.m_pos.y >= m_windowSize.y)
             powerit.m_destroyed = true;
 
-        if(collision == true) {
+        if(collision) {
             activate_power(powerit);
             powerit.m_destroyed = true;
             powerit.activated = true;
@@ -364,9 +384,9 @@ void GameState::process_collisions(float dt) {
 }
 
 void GameState::reset_game() {
-    if(m_lives == 0){
+    if(m_lives == 0) {
         m_machine.pushState(States::Intro);
-        m_lives = 3;
+        m_lives = max_lives;
         return;
     }
 
@@ -375,16 +395,15 @@ void GameState::reset_game() {
     m_postProcessing.setValue("confuse", false);
 
 
-    auto size = m_window.get_size();
-    robot2D::vec2f paddle_size(100.f, 20.f);
-    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
-                                 size.y - paddle_size.y));
+    m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - paddle_size.x / 2,
+                                   m_windowSize.y - paddle_size.y));
     robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                          -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.stuck = true;
     m_ball.setPos(ballPos);
 }
 
+//todo rewrite spawn function
 bool ShouldSpawn(unsigned int chance)
 {
     unsigned int random = rand() % chance;
@@ -393,7 +412,7 @@ bool ShouldSpawn(unsigned int chance)
 
 void GameState::spawn_power_up(GameObject& box) {
     PowerUp power_up;
-    if (ShouldSpawn(75)){
+    if (ShouldSpawn(75)) {
       power_up.m_type = PowerUpType::speed;
       power_up.m_sprite.setTexture(m_textures.get("speed"));
       power_up.color = robot2D::Color::from_gl(0.5f, 0.5f, 1.0f);
@@ -422,7 +441,7 @@ void GameState::spawn_power_up(GameObject& box) {
         power_up.m_sprite.setTexture(m_textures.get("confuse"));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.3f, 0.3f);
         power_up.duration = 15.f;
-    }// Negative powerups should spawn more often
+    }
 
     if (ShouldSpawn(15)){
         power_up.m_type = PowerUpType::chaos;
@@ -465,7 +484,6 @@ void GameState::activate_power(PowerUp& power) {
 }
 
 void GameState::changeLevel() {
-
     currlevel++;
     m_power_ups.clear();
 
@@ -473,14 +491,20 @@ void GameState::changeLevel() {
     m_postProcessing.setValue("confuse", false);
 
 
-    auto size = m_window.get_size();
     robot2D::vec2f paddle_size(100.f, 20.f);
-    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
-                                 size.y - paddle_size.y));
+    m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - paddle_size.x / 2,
+                                   m_windowSize.y - paddle_size.y));
     robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                         -ball_radius * 2.0f + m_paddle.m_pos.y);
     m_ball.stuck = true;
     m_ball.setPos(ballPos);
 }
+
+void GameState::onResize(const robot2D::vec2f& size) {
+    m_windowSize = robot2D::vec2u(size.x, size.y);
+    m_background.setScale(robot2D::vec2f(size.x, size.y));
+    //m_levels[currlevel].onResize(size);
+}
+
 
 

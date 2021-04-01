@@ -20,6 +20,7 @@ source distribution.
 *********************************************************************/
 
 #include <iostream>
+#include <robot2D/Core/Keyboard.h>
 
 #include "game/IntroState.h"
 #include "game/States.h"
@@ -92,7 +93,7 @@ void IntroState::setup() {
 
 void IntroState::handleEvents(const robot2D::Event& event) {
     if(event.type == robot2D::Event::KeyPressed &&
-    event.key.code == GLFW_KEY_SPACE){
+    event.key.code == robot2D::SPACE){
         if(m_timer.elapsed() >= 1.f){
             m_machine.pushState(2);
         }

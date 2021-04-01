@@ -28,11 +28,13 @@ source distribution.
 #include "robot2D/Util/ResourceHandler.h"
 #include "robot2D/Graphics/Text.h"
 
+#include "InputManager.h"
 #include "Level.h"
 #include "ParticleEmitter.h"
 #include "PostProcessing.h"
-#include "PowerUp.h"
 #include "ParallaxEffect.h"
+#include "PowerUp.h"
+
 
 class GameState: public robot2D::State{
 public:
@@ -44,6 +46,9 @@ public:
     void render() override;
 private:
     void setup();
+    void load_resources();
+    void onResize(const robot2D::vec2f& size);
+
 
     void process_input(float dt);
     void update_powerups(float dt);
@@ -58,6 +63,7 @@ private:
     robot2D::ResourceHandler<robot2D::Texture> m_textures;
     robot2D::ResourceHandler<robot2D::Font> m_fonts;
     robot2D::Sprite m_background;
+    bool m_pause;
 
     //effects
     PostProcessing m_postProcessing;
@@ -72,17 +78,21 @@ private:
     std::vector<Level> m_levels;
     unsigned int currlevel = 0;
 
-    //part of input_manager
-    bool m_keys[1024];
-    bool m_keysProcessed[1024];
+
 
     //gui stuff
     robot2D::Text m_text;
-    int last_lives = 3;
-    int m_lives = 3;
+    int last_lives;
+    int m_lives;
 
-    bool m_pause;
     robot2D::Text m_won;
 
     ParallaxEffect m_parallax;
+
+    robot2D::vec2u m_windowSize;
+
+    InputManager inputManager;
+    //part of input_manager
+    bool m_keys[1024];
+    bool m_keysProcessed[1024];
 };

@@ -43,7 +43,7 @@ Audio* Audio::getInstanse() {
 }
 
 
-bool Audio::loadFile(const char* filename, const char* id, AudioType type) {
+bool Audio::loadFile(const char* filename, AudioFileID id, AudioType type) {
     if(type == AudioType::music) {
         if (!m_music.openFromFile(filename))
             throw std::runtime_error("Music " + std::string(filename) + " could not be loaded.");
@@ -53,15 +53,15 @@ bool Audio::loadFile(const char* filename, const char* id, AudioType type) {
         sf::SoundBuffer soundBuffer;
         if(!soundBuffer.loadFromFile(filename))
             return false;
-        m_soundBuffers.insert(std::pair<std::string, sf::SoundBuffer>
+        m_soundBuffers.insert(std::pair<AudioFileID, sf::SoundBuffer>
                 (id, soundBuffer));
     }
 
-    m_audiotypes.insert(std::pair<std::string, AudioType>(id, type));
+    m_audiotypes.insert(std::pair<AudioFileID, AudioType>(id, type));
     return true;
 }
 
-void Audio::play(const char* id, bool looped) {
+void Audio::play(AudioFileID id, bool looped) {
     if(getType(id) == AudioType::sound) {
         m_sounds.push_back(sf::Sound());
         sf::Sound &sound = m_sounds.back();
@@ -76,7 +76,7 @@ void Audio::play(const char* id, bool looped) {
     }
 }
 
-void Audio::stop(const char* id) {
+void Audio::stop(AudioFileID id) {
     if(getType(id) == AudioType::sound) {
     }
     if(getType(id) == AudioType::music)
@@ -84,18 +84,18 @@ void Audio::stop(const char* id) {
 }
 
 
-void Audio::pause(const char* id, bool status) {
+void Audio::pause(AudioFileID id, bool status) {
     m_music.stop();
 }
 
-void Audio::setVolume(const char* id, const float& volume) {
+void Audio::setVolume(AudioFileID id, const float& volume) {
     m_volumes[id] = volume;
     if(getType(id) == AudioType::music)
         m_music.setVolume(volume);
 
 }
 
-const float& Audio::getVolume(const char* id) const {
+const float& Audio::getVolume(AudioFileID id) const {
     return m_volumes.at(id);
 }
 
@@ -107,6 +107,6 @@ void Audio::update_sounds() {
                       });
 }
 
-AudioType Audio::getType(const char* id) {
+AudioType Audio::getType(AudioFileID id) {
     return m_audiotypes.at(id);
 }

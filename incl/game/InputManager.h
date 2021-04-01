@@ -19,10 +19,27 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/PowerUp.h"
+#pragma once
 
-PowerUp::PowerUp():
-    GameObject(), activated(false){
+#include <unordered_map>
+#include <robot2D/Core/Keyboard.h>
 
-}
 
+enum InputMaps{
+    leftMove,
+    rightMove,
+    stick
+};
+
+class InputManager{
+public:
+    InputManager();
+    ~InputManager() = default;
+
+
+    robot2D::Key getKey(const InputMaps& maps);
+private:
+    void setup_default();
+private:
+    std::unordered_map<int, robot2D::Key> m_keys;
+};

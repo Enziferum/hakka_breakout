@@ -19,10 +19,8 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/PowerUp.h"
+#pragma once
 
-PowerUp::PowerUp():
-    GameObject(), activated(false){
+class Player {
 
-}
-
+};

@@ -23,9 +23,9 @@ source distribution.
 #include <string>
 #include <algorithm>
 #include <map>
-
-#include "game/Level.h"
+#include <iostream>
 #include "robot2D/Graphics/RenderTarget.h"
+#include "game/Level.h"
 
 
 std::map<int, robot2D::Color> tile_colors = {
@@ -37,7 +37,12 @@ std::map<int, robot2D::Color> tile_colors = {
 };
 
 
-Level::Level(): m_tiles() {}
+Level::Level():
+m_tiles(),
+m_size(),
+rw(0),
+rh(0)
+{}
 
 bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
                       const robot2D::ResourceHandler<robot2D::Texture>& handler) {
@@ -61,10 +66,12 @@ bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
         return false;
 
     robot2D::vec2f tile_sz;
-    size_t rh = rows.size();
-    size_t rw = rows[0].size();
+    rh = rows.size();
+    rw = rows[0].size();
     tile_sz.x = static_cast<float>(size.x / rw);
     tile_sz.y = static_cast<float>(size.y / rh);
+
+    m_size = size;
 
     for(int y = 0; y < rh; ++y){
         for(int x = 0; x < rw; ++x){
@@ -99,7 +106,8 @@ bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
 }
 
 void Level::update(float dt) {
-    m_tiles.erase(std::remove_if(m_tiles.begin(), m_tiles.end(),[](const GameObject& object){
+    m_tiles.erase(std::remove_if(m_tiles.begin(), m_tiles.end(),
+                                 [](const GameObject& object){
         return object.m_destroyed;
     }),m_tiles.end());
 }
@@ -123,6 +131,35 @@ bool Level::destroyed() const {
 
 std::vector<GameObject> &Level::getTiles() {
     return m_tiles;
+}
+
+void Level::onResize(const robot2D::vec2f& size) {
+    if(m_size == size)
+        return;
+
+    //new tile_sz, for example == 1000 / 15, 800 / 8
+    robot2D::vec2f tile_sz(size.x / rw,
+                           size.y / rh);
+
+    for(auto& it: m_tiles) {
+        auto old_pos = it.m_pos;
+        std::cout << old_pos.x << ":" << old_pos.y << std::endl;
+        it.setSize(tile_sz);
+
+        if(old_pos == robot2D::vec2f())
+            continue;
+
+        int it_x = int(size.x / old_pos.x);
+        int it_y = 0;
+        if(old_pos.y != 0)
+            it_y = int(size.y / old_pos.y);
+
+
+        it.setPos(robot2D::vec2f(tile_sz.x * it_y,
+                                 tile_sz.y * it_x));
+    }
+
+    m_size = size;
 }
 
 
