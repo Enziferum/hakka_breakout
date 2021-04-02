@@ -28,9 +28,9 @@ source distribution.
 #include "robot2D/Graphics/Sprite.h"
 #include "robot2D/Util/ResourceHandler.h"
 
+#include "gui/Gui.h"
+
 class MenuState: public robot2D::State{
-public:
-    using Ptr = std::shared_ptr<MenuState>;
 public:
     MenuState(robot2D::IStateMachine& machine);
     ~MenuState()override = default;
@@ -40,10 +40,12 @@ public:
     void render() override;
 private:
     void setup();
-
+    void load_resources();
 private:
     robot2D::ResourceHandler<robot2D::Texture> m_textures;
     robot2D::Sprite m_background;
     robot2D::Font m_font;
     robot2D::Text m_name;
+
+    gui::Gui m_gui;
 };

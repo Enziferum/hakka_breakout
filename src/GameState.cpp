@@ -39,10 +39,16 @@ const robot2D::vec2f ball_velocity(100.0f, -350.0f);
 const robot2D::vec2f paddle_size(100.f, 20.f);
 
 GameState::GameState(robot2D::IStateMachine& machine):
-    State(machine), m_keys(), m_keysProcessed() ,
+    State(machine),
+    m_keys(),
+    m_keysProcessed() ,
     m_pause(false),
     m_lives(max_lives),
-    last_lives(max_lives){
+    m_livesSprites(),
+    m_bounceTimer(1.5f),
+    m_state(mState::Play)
+    {
+
     setup();
 }
 
@@ -74,14 +80,18 @@ void GameState::load_resources() {
     Level three;
     Level four;
 
-    one.loadLevel("res/levels/1.lvl", robot2D::vec2f(m_windowSize.x,
-                                                      m_windowSize.y / 2), m_textures);
-    two.loadLevel("res/levels/2.lvl", robot2D::vec2f(m_windowSize.x,
-                                                     m_windowSize.y / 2), m_textures);
-    three.loadLevel("res/levels/3.lvl", robot2D::vec2f(m_windowSize.x,
-                                                       m_windowSize.y / 2), m_textures);
-    four.loadLevel("res/levels/4.lvl", robot2D::vec2f(m_windowSize.x,
-                                                      m_windowSize.y / 2), m_textures);
+    one.loadLevel("res/levels/1.lvl", m_textures, robot2D::vec2f(m_windowSize.x,
+                                                                 m_windowSize.y / 2),
+                  robot2D::vec2f(0.f, 50.f));
+    two.loadLevel("res/levels/2.lvl", m_textures, robot2D::vec2f(m_windowSize.x,
+                                                                 m_windowSize.y / 2),
+                  robot2D::vec2f(0.f, 50.f));
+    three.loadLevel("res/levels/3.lvl", m_textures, robot2D::vec2f(m_windowSize.x,
+                                                                   m_windowSize.y / 2),
+                    robot2D::vec2f(0.f, 50.f));
+    four.loadLevel("res/levels/4.lvl", m_textures, robot2D::vec2f(m_windowSize.x,
+                                                                  m_windowSize.y / 2),
+                   robot2D::vec2f(0.f, 50.f));
 
     //m_levels.push_back(zero);
     m_levels.push_back(one);
@@ -101,9 +111,13 @@ void GameState::setup() {
 
     load_resources();
 
-    m_text.setText("Lives: " + std::to_string(m_lives));
-    m_text.setPos(robot2D::vec2f(0, 10));
+
+    m_text.setText("Lives:");
+    m_text.setPos(robot2D::vec2f(650, 10));
     m_text.setFont(m_fonts.get("game_font"));
+    m_won.setFont(m_fonts.get("game_font"));
+    m_won.setPos(robot2D::vec2f(200, size.y / 2.f));
+
 
     m_postProcessing.set_size(m_windowSize);
     m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get("particle")));
@@ -128,6 +142,18 @@ void GameState::setup() {
     m_ball.setPos(ballPos);
     m_ball.setSize(robot2D::vec2f(ball_radius * 2.f, ball_radius * 2.f));
 
+    auto live_sz = robot2D::vec2f(robot2D::vec2f(30.f, 30.f));
+    auto live_start_pos = robot2D::vec2f(m_text.getPos().x + 50, 5);
+    for(int it = 0; it < max_lives; ++it){
+        robot2D::Sprite sprite;
+        sprite.setTexture(m_textures.get("face"));
+        sprite.setScale(live_sz);
+        sprite.setPosition(robot2D::vec2f(live_start_pos.x + live_sz.x * it,
+                                          live_start_pos.y));
+        m_livesSprites.push_back(sprite);
+    }
+
+
     Audio::getInstanse() -> loadFile("res/audio/bleep_1.wav",
                                         AudioFileID::bleep_1, AudioType::sound);
     Audio::getInstanse() -> loadFile("res/audio/bleep.wav",
@@ -144,7 +170,7 @@ void GameState::handleEvents(const robot2D::Event& event) {
         onResize(robot2D::vec2f(event.size.widht, event.size.heigth));
     }
 
-    if(m_pause) {
+    if(m_state == mState::Pause) {
         if(event.type == robot2D::Event::KeyPressed) {
             if (event.key.code == robot2D::Key::ESCAPE)
                 m_pause = false;
@@ -152,33 +178,46 @@ void GameState::handleEvents(const robot2D::Event& event) {
         return;
     }
 
+    if(m_state == mState::LevelChange){
 
-    if(event.type == robot2D::Event::KeyPressed){
-        if (event.key.code == robot2D::Key::ESCAPE)
-            m_pause = true;
     }
 
-    if(event.type == robot2D::Event::KeyPressed){
-        m_keys[event.key.code] = true;
-    }
-
-    if(event.type == robot2D::Event::KeyReleased){
-        m_keys[event.key.code] = false;
-        m_keysProcessed[event.key.code] = false;
-    }
-
-    if(event.type == robot2D::Event::MousePressed){
-        if(event.mouse.btn == robot2D::Event::MouseButtonEvent::left){
-            robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
-            std::cout << event.mouse.x << ":" << event.mouse.y << std::endl;
+   // if(m_state == mState::Play) {
+        if (event.type == robot2D::Event::KeyPressed) {
+            if (event.key.code == robot2D::Key::ESCAPE)
+                m_state = mState::Pause;
+            if (event.key.code == robot2D::Key::Y)
+                changeLevel();
         }
-    }
+
+        if (event.type == robot2D::Event::KeyPressed) {
+            m_keys[event.key.code] = true;
+        }
+
+        if (event.type == robot2D::Event::KeyReleased) {
+            m_keys[event.key.code] = false;
+            m_keysProcessed[event.key.code] = false;
+        }
+
+        if (event.type == robot2D::Event::MousePressed) {
+            if (event.mouse.btn == robot2D::Event::MouseButtonEvent::left) {
+                robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
+                std::cout << event.mouse.x << ":" << event.mouse.y << std::endl;
+            }
+        }
+  //  }
 
 }
 
 void GameState::update(float dt) {
-    if(m_pause)
+    if(m_state == mState::Pause)
         return;
+
+    if(m_state == mState::LevelChange){
+        m_bounceTimer.update(dt);
+        return;
+    }
+
     process_input(dt);
     process_collisions(dt);
     m_ball.move(dt);
@@ -186,11 +225,6 @@ void GameState::update(float dt) {
     //need reset level
     if(m_ball.m_pos.y >= m_windowSize.y)
         reset_game();
-
-    if(last_lives != m_lives){
-        m_text.setText("Lives: " + std::to_string(m_lives));
-        last_lives = m_lives;
-    }
 
     m_levels[currlevel].update(dt);
     m_parallax.update(dt);
@@ -308,9 +342,13 @@ void GameState::render() {
     m_window.draw(m_ball);
     for(auto& it:m_power_ups)
         m_window.draw(it);
+    for(int it = 0; it < m_lives; ++it)
+        m_window.draw( m_livesSprites[it]);
+    m_window.draw(m_text);
+    if(m_state == mState::LevelChange)
+        m_window.draw(m_won);
     m_postProcessing.afterRender();
     m_window.draw(m_postProcessing);
-    m_window.draw(m_text);
 }
 
 
@@ -385,12 +423,15 @@ void GameState::process_collisions(float dt) {
 
 void GameState::reset_game() {
     if(m_lives == 0) {
-        m_machine.pushState(States::Intro);
+        //m_machine.pushState(States::Intro);
         m_lives = max_lives;
         return;
     }
 
-    --m_lives;
+    {
+        --m_lives;
+    }
+
     m_postProcessing.setValue("chaos", false);
     m_postProcessing.setValue("confuse", false);
 
@@ -463,9 +504,8 @@ void GameState::activate_power(PowerUp& power) {
             m_postProcessing.setValue("confuse", true);
             break;
         case PowerUpType::wallbreaker:
-            //
             m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 0.5f);
-           // m_ball.wallbreaker = true;
+            m_ball.wallbreaker = true;
             break;
         case PowerUpType::sticky:
             //
@@ -484,14 +524,14 @@ void GameState::activate_power(PowerUp& power) {
 }
 
 void GameState::changeLevel() {
-    currlevel++;
+    m_state = mState::LevelChange;
+    m_won.setText("Congratulations! You won!");
     m_power_ups.clear();
 
     m_postProcessing.setValue("chaos", false);
     m_postProcessing.setValue("confuse", false);
 
 
-    robot2D::vec2f paddle_size(100.f, 20.f);
     m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - paddle_size.x / 2,
                                    m_windowSize.y - paddle_size.y));
     robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,

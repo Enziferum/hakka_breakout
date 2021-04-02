@@ -19,11 +19,13 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-
+#include <robot2D/Graphics/GL.h>
 #include "robot2D/Graphics/RenderTarget.h"
+
 #include "game/ParticleEmitter.h"
 
 constexpr int new_particle_sz = 2;
+constexpr int particle_count = 500;
 
 ParticleEmitter::ParticleEmitter(): m_particles(),
 m_texture(nullptr){
@@ -31,15 +33,14 @@ m_texture(nullptr){
 }
 
 void ParticleEmitter::setup() {
-    m_particleShader.createShader(0x8B31,
+    m_particleShader.createShader(robot2D::shaderType::vertex,
                                   "res/shaders/particle.vs");
 
-    m_particleShader.createShader(0x8B30,
+    m_particleShader.createShader(robot2D::shaderType::fragment,
                                   "res/shaders/particle.fs");
 
-    // init particles //
-    int particles_sz = 500;
-    for(int it = 0; it < particles_sz; ++it)
+
+    for(int it = 0; it < particle_count; ++it)
         m_particles.emplace_back(Particle());
 }
 
@@ -85,17 +86,17 @@ void ParticleEmitter::draw(robot2D::RenderTarget& target, robot2D::RenderStates 
 
 unsigned int lastUsedParticle = 0;
 int ParticleEmitter::find_first_unused() {
-    for (unsigned int i = lastUsedParticle; i < 500; ++i){
-        if (m_particles[i].lifeTime <= 0.0f){
-            lastUsedParticle = i;
-            return i;
+    for (unsigned int it = lastUsedParticle; it < particle_count; ++it){
+        if (m_particles[it].lifeTime <= 0.0f){
+            lastUsedParticle = it;
+            return it;
         }
     }
     // otherwise, do a linear search
-    for (unsigned int i = 0; i < lastUsedParticle; ++i){
-        if (m_particles[i].lifeTime <= 0.0f){
-            lastUsedParticle = i;
-            return i;
+    for (unsigned int it = 0; it < lastUsedParticle; ++it){
+        if (m_particles[it].lifeTime <= 0.0f){
+            lastUsedParticle = it;
+            return it;
         }
     }
     // all particles are taken,
@@ -108,6 +109,7 @@ void ParticleEmitter::respawn_particle(Particle& particle, const BallObject& obj
                                        const robot2D::vec2f& offset) {
     float random = ((rand() % 100) - 50) / 10.0f;
     float rColor = 0.5f + ((rand() % 100) / 100.0f);
+
     particle.m_pos.x = obj.m_pos.x + random + offset.x;
     particle.m_pos.y = obj.m_pos.y + random + offset.y;
     particle.r = rColor;
@@ -119,8 +121,8 @@ void ParticleEmitter::respawn_particle(Particle& particle, const BallObject& obj
     particle.m_velocity = vel_copy * 0.1f;
 }
 
-void ParticleEmitter::setup_GL() {
-
+void ParticleEmitter::setTexture(robot2D::Texture& tex) {
+    m_texture = &tex;
 }
 
 

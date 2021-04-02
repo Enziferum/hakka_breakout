@@ -63,7 +63,7 @@ bool Audio::loadFile(const char* filename, AudioFileID id, AudioType type) {
 
 void Audio::play(AudioFileID id, bool looped) {
     if(getType(id) == AudioType::sound) {
-        m_sounds.push_back(sf::Sound());
+        m_sounds.emplace_back(sf::Sound());
         sf::Sound &sound = m_sounds.back();
 
         sound.setBuffer(m_soundBuffers[id]);

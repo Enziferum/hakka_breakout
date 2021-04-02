@@ -36,11 +36,10 @@ public:
     ~Level() = default;
 
 
-    bool loadLevel(const std::string& path, const robot2D::vec2f& size,
-                   const robot2D::ResourceHandler<robot2D::Texture>& handler);
+    bool loadLevel(const std::string& path, const robot2D::ResourceHandler<robot2D::Texture>& handler,
+                   const robot2D::vec2f& size, const robot2D::vec2f& offset = robot2D::vec2f());
 
     void update(float dt);
-
     void onResize(const robot2D::vec2f& size);
 
     bool destroyed() const;

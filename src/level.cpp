@@ -44,8 +44,9 @@ rw(0),
 rh(0)
 {}
 
-bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
-                      const robot2D::ResourceHandler<robot2D::Texture>& handler) {
+bool Level::loadLevel(const std::string& path, const robot2D::ResourceHandler<robot2D::Texture>& handler,
+                      const robot2D::vec2f& size, const robot2D::vec2f& offset) {
+
     std::ifstream file(path.c_str());
     if(!file.is_open())
         return false;
@@ -68,8 +69,9 @@ bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
     robot2D::vec2f tile_sz;
     rh = rows.size();
     rw = rows[0].size();
-    tile_sz.x = static_cast<float>(size.x / rw);
-    tile_sz.y = static_cast<float>(size.y / rh);
+
+    tile_sz.x = static_cast<float>((size.x - offset.x) / rw);
+    tile_sz.y = static_cast<float>((size.y - offset.y) / rh);
 
     m_size = size;
 
@@ -88,8 +90,8 @@ bool Level::loadLevel(const std::string& path, const robot2D::vec2f& size,
                 object.m_sprite.setTexture(handler.get("block"));
             }
 
-            robot2D::vec2f pos(tile_sz.x * x,
-                             tile_sz.y * y);
+            robot2D::vec2f pos(offset.x + tile_sz.x * x,
+                               offset.y + tile_sz.y * y);
 
             object.m_pos = pos;
             object.m_size = tile_sz;

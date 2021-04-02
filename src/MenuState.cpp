@@ -19,32 +19,70 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/MenuState.h"
+#include <robot2D/Util/Logger.h>
 
-MenuState::MenuState(robot2D::IStateMachine& machine) : State(machine) {
+#include "game/States.h"
+#include "game/MenuState.h"
+#include "game/gui/Button.h"
+
+MenuState::MenuState(robot2D::IStateMachine& machine) :
+State(machine) {
     setup();
 }
 
 void MenuState::handleEvents(const robot2D::Event& event) {
+    //todo resize UI
+    if(event.type == robot2D::Event::Resized)
+        1==1;
 
+    m_gui.handleEvents(event);
 }
 
 void MenuState::update(float dt) {
-
+    m_gui.update(dt);
 }
 
 void MenuState::render() {
     m_window.draw(m_background);
-    m_window.draw(m_name);
+  //  m_window.draw(m_name);
+    m_window.draw(m_gui);
+}
+
+void MenuState::load_resources() {
+    auto back_path = "res/textures/cityskyline.png";
+    if(!m_textures.loadFromFile("back", back_path)){
+        LOG_ERROR("Can't load texture %", back_path)
+    }
+    //m_textures.loadFromFile("", "");
+    //m_textures.loadFromFile("", "");
+    //m_font.loadFromFile("", 20);
 }
 
 void MenuState::setup() {
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
-    m_textures.loadFromFile("", "");
+    load_resources();
+//    m_name.setFont(m_font);
+//    m_name.setText("Breakout");
+//    m_name.setScale(2.f);
 
-    m_font.loadFromFile("");
-    m_name.setFont(m_font);
-    m_name.setText("Breakout");
-    m_name.setScale(2.f);
+    auto size = m_window.get_size();
+
+    auto start_btn = gui::Button::create();
+    start_btn->onTouch([this]() {
+       m_machine.pushState(States::Game);
+    });
+
+
+    auto end_btn = gui::Button::create();
+    end_btn->onTouch([this](){
+        //todo set close callback
+        m_window.close();
+    });
+
+    m_gui.pack(start_btn);
+    m_gui.pack(end_btn);
+
+    m_background.setTexture(m_textures.get("back"));
+    m_background.setScale(robot2D::vec2f(size.x, size.y));
 }
+
+

@@ -56,5 +56,5 @@ public:
     float radius;
     bool stuck;
     bool wallbreaker;
-    bool sticky;
+    bool sticky; // ??
 };

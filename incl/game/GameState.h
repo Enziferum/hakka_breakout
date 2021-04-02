@@ -21,6 +21,8 @@ source distribution.
 
 #pragma once
 
+#include <vector>
+
 #include "robot2D/Core/State.h"
 #include "robot2D/Core/IStateMachine.h"
 
@@ -34,6 +36,8 @@ source distribution.
 #include "PostProcessing.h"
 #include "ParallaxEffect.h"
 #include "PowerUp.h"
+#include "Timer.h"
+
 
 
 class GameState: public robot2D::State{
@@ -60,39 +64,49 @@ private:
 
     void changeLevel();
 private:
+    enum class mState{
+        Play,
+        Pause,
+        LevelChange
+    };
+
+    mState m_state;
+
+    robot2D::vec2u m_windowSize;
+
     robot2D::ResourceHandler<robot2D::Texture> m_textures;
     robot2D::ResourceHandler<robot2D::Font> m_fonts;
     robot2D::Sprite m_background;
     bool m_pause;
 
     //effects
+
     PostProcessing m_postProcessing;
     ParticleEmitter m_particleEmitter;
+    ParallaxEffect m_parallax;
 
+    //effects
 
     GameObject m_paddle;
     BallObject m_ball;
     std::vector<PowerUp> m_power_ups;
 
-
     std::vector<Level> m_levels;
     unsigned int currlevel = 0;
 
-
-
     //gui stuff
     robot2D::Text m_text;
-    int last_lives;
-    int m_lives;
+    std::vector<robot2D::Sprite> m_livesSprites;
 
     robot2D::Text m_won;
-
-    ParallaxEffect m_parallax;
-
-    robot2D::vec2u m_windowSize;
+    int m_lives;
+    //gui stuff
 
     InputManager inputManager;
     //part of input_manager
     bool m_keys[1024];
     bool m_keysProcessed[1024];
+
+    // bounce animation //
+    Timer m_bounceTimer;
 };

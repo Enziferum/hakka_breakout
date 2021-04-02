@@ -19,10 +19,9 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <iostream>
-
 #include <robot2D/Graphics/GL.h>
 #include <robot2D/Graphics/RenderTarget.h>
+#include <robot2D/Util/Logger.h>
 
 #include "game/PostProcessing.h"
 
@@ -59,10 +58,10 @@ void PostProcessing::draw(robot2D::RenderTarget& target, robot2D::RenderStates s
 
 //rewrite this function
 void PostProcessing::setup_GL() {
-    if(!m_effectShader.createShader(0x8B31,"res/shaders/effects.vs"))
+    if(!m_effectShader.createShader(robot2D::shaderType::vertex,"res/shaders/effects.vs"))
         return;
 
-    if(!m_effectShader.createShader(0x8B30,"res/shaders/effects.fs"))
+    if(!m_effectShader.createShader(robot2D::shaderType::fragment,"res/shaders/effects.fs"))
         return;
 
     glGenFramebuffers(1, &MSFBO);
@@ -72,17 +71,20 @@ void PostProcessing::setup_GL() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, MSFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGB, m_size.x, m_size.y); // allocate storage for render buffer object
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RBO); // attach MS render buffer object to framebuffer
+    // allocate storage for render buffer object
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGB, m_size.x, m_size.y);
+    // attach MS render buffer object to framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RBO);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::POSTPROCESSOR: Failed to initialize MSFBO" << std::endl;
+        LOG_ERROR_E( "ERROR::POSTPROCESSOR: Failed to initialize MSFBO")
 
     // also initialize the FBO/texture to blit multisampled color-buffer to; used for shader operations (for postprocessing effects)
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    m_texture.generate(m_size, NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.get_id(), 0); // attach texture to framebuffer as its color attachment
+    m_texture.generate(m_size, nullptr);
+    // attach texture to framebuffer as its color attachment
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.get_id(), 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::POSTPROCESSOR: Failed to initialize FBO" << std::endl;
+        LOG_ERROR_E("ERROR::POSTPROCESSOR: Failed to initialize FBO")
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // initialize render data and uniforms
@@ -129,8 +131,8 @@ void PostProcessing::preRender() {
 }
 
 void PostProcessing::afterRender() {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, this->MSFBO);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->FBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, MSFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
     glBlitFramebuffer(0, 0, m_size.x, m_size.y, 0, 0, m_size.x, m_size.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // binds both READ and WRITE framebuffer to default framebuffer
 }
@@ -153,13 +155,13 @@ void PostProcessing::init_RenderData() {
             1.0f, -1.0f, 1.0f, 0.0f,
             1.0f,  1.0f, 1.0f, 1.0f
     };
-    glGenVertexArrays(1, &this->VAO);
+    glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindVertexArray(this->VAO);
+    glBindVertexArray(VAO);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

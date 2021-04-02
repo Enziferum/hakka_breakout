@@ -20,34 +20,15 @@ source distribution.
 *********************************************************************/
 
 #pragma once
-#include <functional>
-#include <utility>
 
 #include "robot2D/Core/State.h"
 #include "robot2D/Core/IStateMachine.h"
 #include "robot2D/Graphics/Sprite.h"
+#include "robot2D/Graphics/Text.h"
 
-//todo be based on chrono
-class Timer{
-public:
-    Timer();
-    ~Timer() = default;
-
-    void update(float dt);
-    float elapsed() const;
-
-    void onTick(std::function<void(float dt)>);
-    void reset(float to_time = 0.f);
-private:
-    std::function<void(float)> m_callback;
-    float to_time;
-    float t = 0.f;
-    bool m_endless;
-};
+#include "game/Timer.h"
 
 class IntroState: public robot2D::State{
-public:
-    using Ptr = std::shared_ptr<IntroState>;
 public:
     IntroState(robot2D::IStateMachine& machine);
     ~IntroState()override = default;
@@ -61,5 +42,8 @@ private:
 private:
     robot2D::Sprite m_background;
     robot2D::Texture m_texture;
+    robot2D::Text m_text;
+    robot2D::Font m_font;
+
     Timer m_timer;
 };

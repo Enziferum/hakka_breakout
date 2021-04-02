@@ -40,9 +40,9 @@ void ParallaxEffect::draw(robot2D::RenderTarget &, robot2D::RenderStates states)
 }
 
 void ParallaxEffect::setup_GL() {
-    if(!m_shaderHandler.createShader(0, ""))
+    if(!m_shaderHandler.createShader(robot2D::shaderType::vertex, ""))
         return;
-    if(!m_shaderHandler.createShader(0, ""))
+    if(!m_shaderHandler.createShader(robot2D::shaderType::fragment, ""))
         return;
 
     m_shaderHandler.use();

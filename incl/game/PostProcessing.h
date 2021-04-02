@@ -27,9 +27,10 @@ source distribution.
 class PostProcessing: public robot2D::Drawable{
 public:
     PostProcessing();
-    ~PostProcessing()override = default;
+    ~PostProcessing() override = default;
 
     void set_size(const robot2D::vec2u& size);
+
     void update(float dt);
     void preRender();
     void afterRender();
@@ -48,8 +49,8 @@ private:
     robot2D::vec2u m_size;
 
     //params
-    bool m_shake;
     float m_shake_time = 0.05f;
+    bool m_shake;
     bool m_chaos;
     bool m_confuse;
 

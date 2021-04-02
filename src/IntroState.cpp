@@ -19,48 +19,11 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <iostream>
+#include <robot2D/Util/Logger.h>
 #include <robot2D/Core/Keyboard.h>
 
 #include "game/IntroState.h"
 #include "game/States.h"
-
-constexpr float second = 1000.f;
-
-Timer::Timer():
-to_time(1.f), t(0.f),
-m_endless(false)
-{
-
-}
-
-void Timer::update(float dt) {
-    if(t < to_time)
-        t += dt;
-
-    else {
-        if (m_callback)
-            m_callback(0);
-
-        if(m_endless)
-            reset();
-    }
-}
-
-float Timer::elapsed() const {
-    return t;
-}
-
-void Timer::onTick(std::function<void(float)> function) {
-    m_callback = std::move(function);
-}
-
-void Timer::reset(float time) {
-    t = 0.f;
-    if(time != 0.f)
-        to_time = time;
-}
-
 
 IntroState::IntroState(robot2D::IStateMachine& machine) :
     State(machine),
@@ -71,31 +34,43 @@ IntroState::IntroState(robot2D::IStateMachine& machine) :
 
 void IntroState::setup() {
     auto size = m_window.get_size();
+    auto tex_path = "res/textures/robot2D.png";
+    auto font_path = "res/fonts/game_font.ttf";
 
-    if(!m_texture.loadFromFile("res/textures/robot2D.png", true)) {
-        std::cout << "cant load texture" <<std::endl;
+    if(!m_texture.loadFromFile(tex_path, true)) {
+        LOG_ERROR("Cant load texture %", tex_path);
         return;
     }
 
+    if(!m_font.loadFromFile(font_path, 20)) {
+        LOG_ERROR("Cant load font %", font_path);
+        return;
+    }
+
+    auto tx_size = robot2D::vec2f(256.f, 256.f);
     m_background.setTexture(m_texture);
-    m_background.setScale(robot2D::vec2f(512.f, 512.f));
-    auto tx_size = m_texture.get_size();
+    m_background.setScale(tx_size);
+
 
     m_background.setPosition(robot2D::vec2f(size.x / 2.f - tx_size.x / 2,
                                           size.y / 2.f - tx_size.y / 2));
 
-    //m_background.setColor(robot2D::Color::Green);
+    auto back_size = m_background.getPosition();
+    m_text.setFont(m_font);
+    m_text.setText("Robot2D Engine");
+    m_text.setPos(robot2D::vec2f(back_size + tx_size));
+
+
     m_timer.onTick([this](float dt){
         m_timer.reset();
-        m_machine.pushState(States::Game);
+        m_machine.pushState(States::Menu);
     });
 }
 
 void IntroState::handleEvents(const robot2D::Event& event) {
-    if(event.type == robot2D::Event::KeyPressed &&
-    event.key.code == robot2D::SPACE){
+    if(event.type == robot2D::Event::KeyPressed && event.key.code == robot2D::SPACE){
         if(m_timer.elapsed() >= 1.f){
-            m_machine.pushState(2);
+            m_machine.pushState(States::Game);
         }
     }
 }
@@ -106,6 +81,7 @@ void IntroState::update(float dt) {
 
 void IntroState::render() {
     m_window.draw(m_background);
+    m_window.draw(m_text);
 }
 
 

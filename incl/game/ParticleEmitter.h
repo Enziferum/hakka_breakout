@@ -21,26 +21,12 @@ source distribution.
 
 #include <vector>
 
-#include <robot2D/Core/Vector2.h>
 #include <robot2D/Graphics/Shader.h>
 #include <robot2D/Graphics/Drawable.h>
 
 #include "GameObject.h"
+#include "Particle.h"
 
-struct Particle{
-    Particle(): m_pos(), m_velocity(),
-    r(1.f), g(1.f), b(1.f), alpha(1.f),
-    lifeTime(0.f)
-    {}
-
-    robot2D::vec2f m_pos, m_velocity;
-    float r, g, b, alpha;
-    float lifeTime;
-
-    bool is_life() const {
-        return lifeTime > 0.f;
-    }
-};
 
 
 class ParticleEmitter: public robot2D::Drawable{
@@ -48,16 +34,13 @@ public:
     ParticleEmitter();
     ~ParticleEmitter() = default;
 
-    void setTexture(robot2D::Texture& tex){
-        m_texture = &tex;
-    }
+    void setTexture(robot2D::Texture& tex);
     void update(float dt, int new_sz, const BallObject& bind,
                 const robot2D::vec2f& offset);
 protected:
     void draw(robot2D::RenderTarget &target,
               robot2D::RenderStates states) const override;
     void setup();
-    void setup_GL();
 
     int find_first_unused();
     void respawn_particle(Particle& particle, const BallObject& bind, const robot2D::vec2f& offset);
