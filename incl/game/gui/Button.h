@@ -5,6 +5,8 @@
 #pragma once
 
 #include <functional>
+#include <robot2D/Graphics/Sprite.h>
+
 #include "INode.h"
 
 

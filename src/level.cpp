@@ -44,7 +44,7 @@ rw(0),
 rh(0)
 {}
 
-bool Level::loadLevel(const std::string& path, const robot2D::ResourceHandler<robot2D::Texture>& handler,
+bool Level::loadLevel(const std::string& path, const robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& handler,
                       const robot2D::vec2f& size, const robot2D::vec2f& offset) {
 
     std::ifstream file(path.c_str());
@@ -84,10 +84,10 @@ bool Level::loadLevel(const std::string& path, const robot2D::ResourceHandler<ro
             GameObject object;
             if(c == 1){
                 object.m_solid = true;
-                object.m_sprite.setTexture(handler.get("block_solid"));
+                object.m_sprite.setTexture(handler.get(ResourceIDs::Solid));
             }
             else{
-                object.m_sprite.setTexture(handler.get("block"));
+                object.m_sprite.setTexture(handler.get(ResourceIDs::Block));
             }
 
             robot2D::vec2f pos(offset.x + tile_sz.x * x,

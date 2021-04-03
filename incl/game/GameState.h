@@ -37,8 +37,7 @@ source distribution.
 #include "ParallaxEffect.h"
 #include "PowerUp.h"
 #include "Timer.h"
-
-
+#include "IDs.h"
 
 class GameState: public robot2D::State{
 public:
@@ -74,10 +73,9 @@ private:
 
     robot2D::vec2u m_windowSize;
 
-    robot2D::ResourceHandler<robot2D::Texture> m_textures;
-    robot2D::ResourceHandler<robot2D::Font> m_fonts;
+    robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> m_textures;
+    robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
     robot2D::Sprite m_background;
-    bool m_pause;
 
     //effects
 

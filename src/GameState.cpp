@@ -19,7 +19,6 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <iostream>
 #include <algorithm>
 #include <ctime>
 
@@ -32,17 +31,24 @@ source distribution.
 
 //work on constants where saving ??
 constexpr float speed = 500.f;
-const float ball_radius = 12.5f;
+constexpr float ball_radius = 12.5f;
 constexpr int max_lives = 3;
 constexpr unsigned int emitter_new_sz = 2;
+
 const robot2D::vec2f ball_velocity(100.0f, -350.0f);
 const robot2D::vec2f paddle_size(100.f, 20.f);
+
+
+namespace {
+    enum TextureID{
+
+    };
+}
 
 GameState::GameState(robot2D::IStateMachine& machine):
     State(machine),
     m_keys(),
     m_keysProcessed() ,
-    m_pause(false),
     m_lives(max_lives),
     m_livesSprites(),
     m_bounceTimer(1.5f),
@@ -55,26 +61,25 @@ GameState::GameState(robot2D::IStateMachine& machine):
 
 void GameState::load_resources() {
     //load textures
-    m_textures.loadFromFile("background", "res/textures/cityskyline.png");
-    m_textures.loadFromFile("face", "res/textures/awesomeface.png", true);
-    m_textures.loadFromFile("block", "res/textures/block.png");
-    m_textures.loadFromFile("block_solid", "res/textures/block_solid.png");
-    m_textures.loadFromFile("paddle", "res/textures/paddle.png", true);
-    m_textures.loadFromFile("particle", "res/textures/particle.png", true);
+    m_textures.loadFromFile(ResourceIDs::Background, "res/textures/cityskyline.png");
+    m_textures.loadFromFile(ResourceIDs::Face, "res/textures/awesomeface.png", true);
+    m_textures.loadFromFile(ResourceIDs::Block, "res/textures/block.png");
+    m_textures.loadFromFile(ResourceIDs::Solid, "res/textures/block_solid.png");
+    m_textures.loadFromFile(ResourceIDs::Paddle, "res/textures/paddle.png", true);
+    m_textures.loadFromFile(ResourceIDs::Particle, "res/textures/particle.png", true);
 
     //powerups
-    m_textures.loadFromFile("chaos", "res/textures/powerup_chaos.png", true);
-    m_textures.loadFromFile("confuse", "res/textures/powerup_confuse.png", true);
-    m_textures.loadFromFile("size", "res/textures/powerup_increase.png", true);
-    m_textures.loadFromFile("wallbreaker", "res/textures/powerup_passthrough.png", true);
-    m_textures.loadFromFile("speed", "res/textures/powerup_speed.png", true);
-    m_textures.loadFromFile("sticky", "res/textures/powerup_sticky.png", true);
+    m_textures.loadFromFile(ResourceIDs::Chaos, "res/textures/powerup_chaos.png", true);
+    m_textures.loadFromFile(ResourceIDs::Confuse, "res/textures/powerup_confuse.png", true);
+    m_textures.loadFromFile(ResourceIDs::Size, "res/textures/powerup_increase.png", true);
+    m_textures.loadFromFile(ResourceIDs::Wallbreaker, "res/textures/powerup_passthrough.png", true);
+    m_textures.loadFromFile(ResourceIDs::Speed, "res/textures/powerup_speed.png", true);
+    m_textures.loadFromFile(ResourceIDs::Sticky, "res/textures/powerup_sticky.png", true);
     //powerups
 
-    m_fonts.loadFromFile("game_font", "res/fonts/game_font.ttf");
+    m_fonts.loadFromFile(ResourceIDs::Font, "res/fonts/game_font.ttf");
 
     //todo load all from special folder
-    Level zero;
     Level one;
     Level two;
     Level three;
@@ -93,7 +98,6 @@ void GameState::load_resources() {
                                                                   m_windowSize.y / 2),
                    robot2D::vec2f(0.f, 50.f));
 
-    //m_levels.push_back(zero);
     m_levels.push_back(one);
     m_levels.push_back(two);
     m_levels.push_back(three);
@@ -114,19 +118,19 @@ void GameState::setup() {
 
     m_text.setText("Lives:");
     m_text.setPos(robot2D::vec2f(650, 10));
-    m_text.setFont(m_fonts.get("game_font"));
-    m_won.setFont(m_fonts.get("game_font"));
+    m_text.setFont(m_fonts.get(ResourceIDs::Font));
+    m_won.setFont(m_fonts.get(ResourceIDs::Font));
     m_won.setPos(robot2D::vec2f(200, size.y / 2.f));
 
 
     m_postProcessing.set_size(m_windowSize);
-    m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get("particle")));
+    m_particleEmitter.setTexture(const_cast<robot2D::Texture &>(m_textures.get(ResourceIDs::Particle)));
 
-    m_background.setTexture(m_textures.get("background"));
+    m_background.setTexture(m_textures.get(ResourceIDs::Background));
     m_background.setPosition(robot2D::vec2f(0.f, 0.f));
     m_background.setScale(robot2D::vec2f(size.x, size.y));
 
-    m_paddle.m_sprite.setTexture(m_textures.get("paddle"));
+    m_paddle.m_sprite.setTexture(m_textures.get(ResourceIDs::Paddle));
     m_paddle.setPos(robot2D::vec2f(size.x / 2.f - paddle_size.x / 2,
                     size.y - paddle_size.y));
     m_paddle.setSize(paddle_size);
@@ -135,7 +139,7 @@ void GameState::setup() {
     robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
                                                     -ball_radius * 2.0f + m_paddle.m_pos.y);
 
-    m_ball.m_sprite.setTexture(m_textures.get("face"));
+    m_ball.m_sprite.setTexture(m_textures.get(ResourceIDs::Face));
     m_ball.velocity = ball_velocity;
     m_ball.border = size.x;
     m_ball.radius = ball_radius;
@@ -146,13 +150,19 @@ void GameState::setup() {
     auto live_start_pos = robot2D::vec2f(m_text.getPos().x + 50, 5);
     for(int it = 0; it < max_lives; ++it){
         robot2D::Sprite sprite;
-        sprite.setTexture(m_textures.get("face"));
+        sprite.setTexture(m_textures.get(ResourceIDs::Face));
         sprite.setScale(live_sz);
         sprite.setPosition(robot2D::vec2f(live_start_pos.x + live_sz.x * it,
                                           live_start_pos.y));
         m_livesSprites.push_back(sprite);
     }
 
+    m_bounceTimer.onTick([this](float dt){
+        if(currlevel < m_levels.size())
+            ++currlevel;
+        m_bounceTimer.reset();
+        m_state = mState::Play;
+    });
 
     Audio::getInstanse() -> loadFile("res/audio/bleep_1.wav",
                                         AudioFileID::bleep_1, AudioType::sound);
@@ -173,7 +183,7 @@ void GameState::handleEvents(const robot2D::Event& event) {
     if(m_state == mState::Pause) {
         if(event.type == robot2D::Event::KeyPressed) {
             if (event.key.code == robot2D::Key::ESCAPE)
-                m_pause = false;
+                m_state = mState::Play;
         }
         return;
     }
@@ -182,7 +192,7 @@ void GameState::handleEvents(const robot2D::Event& event) {
 
     }
 
-   // if(m_state == mState::Play) {
+    if(m_state == mState::Play) {
         if (event.type == robot2D::Event::KeyPressed) {
             if (event.key.code == robot2D::Key::ESCAPE)
                 m_state = mState::Pause;
@@ -202,11 +212,9 @@ void GameState::handleEvents(const robot2D::Event& event) {
         if (event.type == robot2D::Event::MousePressed) {
             if (event.mouse.btn == robot2D::Event::MouseButtonEvent::left) {
                 robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
-                std::cout << event.mouse.x << ":" << event.mouse.y << std::endl;
             }
         }
-  //  }
-
+    }
 }
 
 void GameState::update(float dt) {
@@ -271,9 +279,10 @@ void GameState::process_input(float dt) {
     if(m_keys[robot2D::SPACE]) {
         m_ball.stuck = false;
     }
+
 }
 
-bool IsOtherPowerUpActive(std::vector<PowerUp> &powerUps, PowerUpType type)
+bool IsOtherPowerUpActive(std::vector<PowerUp>& powerUps, PowerUpType type)
 {
     // Check if another PowerUp of the same type is still active
     // in which case we don't disable its effect (yet)
@@ -340,6 +349,7 @@ void GameState::render() {
     m_window.draw(m_paddle);
     m_window.draw(m_particleEmitter);
     m_window.draw(m_ball);
+
     for(auto& it:m_power_ups)
         m_window.draw(it);
     for(int it = 0; it < m_lives; ++it)
@@ -347,6 +357,7 @@ void GameState::render() {
     m_window.draw(m_text);
     if(m_state == mState::LevelChange)
         m_window.draw(m_won);
+
     m_postProcessing.afterRender();
     m_window.draw(m_postProcessing);
 }
@@ -431,6 +442,7 @@ void GameState::reset_game() {
     {
         --m_lives;
     }
+    m_power_ups.clear();
 
     m_postProcessing.setValue("chaos", false);
     m_postProcessing.setValue("confuse", false);
@@ -455,38 +467,38 @@ void GameState::spawn_power_up(GameObject& box) {
     PowerUp power_up;
     if (ShouldSpawn(75)) {
       power_up.m_type = PowerUpType::speed;
-      power_up.m_sprite.setTexture(m_textures.get("speed"));
+      power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Speed));
       power_up.color = robot2D::Color::from_gl(0.5f, 0.5f, 1.0f);
       power_up.duration = 0.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::sticky;
-        power_up.m_sprite.setTexture(m_textures.get("sticky"));
+        power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Sticky));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
         power_up.duration = 20.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::wallbreaker;
-        power_up.m_sprite.setTexture(m_textures.get("wallbreaker"));
+        power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Wallbreaker));
         power_up.color = robot2D::Color::from_gl(0.5f, 1.0f, 0.5f);
         power_up.duration = 10.f;
     }
     if (ShouldSpawn(75)){
         power_up.m_type = PowerUpType::size;
-        power_up.m_sprite.setTexture(m_textures.get("size"));
+        power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Size));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.6f, 0.4f);
         power_up.duration = 0.f;
     }
     if (ShouldSpawn(15)) {
         power_up.m_type = PowerUpType::confuse;
-        power_up.m_sprite.setTexture(m_textures.get("confuse"));
+        power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Confuse));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.3f, 0.3f);
         power_up.duration = 15.f;
     }
 
     if (ShouldSpawn(15)){
         power_up.m_type = PowerUpType::chaos;
-        power_up.m_sprite.setTexture(m_textures.get("chaos"));
+        power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Chaos));
         power_up.color = robot2D::Color::from_gl(0.9f, 0.25f, 0.25f);
         power_up.duration = 15.f;
     }
@@ -526,18 +538,7 @@ void GameState::activate_power(PowerUp& power) {
 void GameState::changeLevel() {
     m_state = mState::LevelChange;
     m_won.setText("Congratulations! You won!");
-    m_power_ups.clear();
-
-    m_postProcessing.setValue("chaos", false);
-    m_postProcessing.setValue("confuse", false);
-
-
-    m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - paddle_size.x / 2,
-                                   m_windowSize.y - paddle_size.y));
-    robot2D::vec2f ballPos = robot2D::vec2f(paddle_size.x / 2.0f - ball_radius + m_paddle.m_pos.x,
-                                        -ball_radius * 2.0f + m_paddle.m_pos.y);
-    m_ball.stuck = true;
-    m_ball.setPos(ballPos);
+    reset_game();
 }
 
 void GameState::onResize(const robot2D::vec2f& size) {

@@ -53,16 +53,11 @@ void MenuState::load_resources() {
     if(!m_textures.loadFromFile("back", back_path)){
         LOG_ERROR("Can't load texture %", back_path)
     }
-    //m_textures.loadFromFile("", "");
-    //m_textures.loadFromFile("", "");
     //m_font.loadFromFile("", 20);
 }
 
 void MenuState::setup() {
     load_resources();
-//    m_name.setFont(m_font);
-//    m_name.setText("Breakout");
-//    m_name.setScale(2.f);
 
     auto size = m_window.get_size();
 

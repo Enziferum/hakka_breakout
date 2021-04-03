@@ -19,10 +19,14 @@ file(GLOB_RECURSE SRC src/*.cpp)
 
 
 set(LIBS robot2D sfml-audio)
-
+#add_compile_options(-Wall -Wextra -pedantic -Werror)
 add_executable(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 
 if(GAME_MODE)
     #todo copy resources libs and etc
+    if(WIN32)
+        #link options to remove console
+        add_link_options(-mwindows)
+    endif()
 endif()

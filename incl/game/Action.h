@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-robot2D - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -21,37 +21,9 @@ source distribution.
 
 #pragma once
 
-#include <vector>
-#include <string>
+namespace robot2D{
+    class Action{
+    public:
 
-#include "robot2D/Graphics/Drawable.h"
-#include "robot2D/Core/Vector2.h"
-#include "robot2D/Util/ResourceHandler.h"
-
-#include "GameObject.h"
-#include "IDs.h"
-
-class Level: public robot2D::Drawable{
-public:
-    Level();
-    ~Level() = default;
-
-
-    bool loadLevel(const std::string& path, const robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& handler,
-                   const robot2D::vec2f& size, const robot2D::vec2f& offset = robot2D::vec2f());
-
-    void update(float dt);
-    void onResize(const robot2D::vec2f& size);
-
-    bool destroyed() const;
-    std::vector<GameObject>& getTiles();
-protected:
-    void draw(robot2D::RenderTarget& target,
-              robot2D::RenderStates states) const override;
-private:
-    std::vector<GameObject> m_tiles;
-    robot2D::vec2f m_size;
-
-    //size of level
-    size_t rw, rh;
-};
+    };
+}
