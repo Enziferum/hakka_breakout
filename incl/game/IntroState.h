@@ -21,8 +21,8 @@ source distribution.
 
 #pragma once
 
-#include "robot2D/Core/State.h"
-#include "robot2D/Core/IStateMachine.h"
+#include "robot2D/Extra/State.h"
+#include "robot2D/Extra/IStateMachine.h"
 #include "robot2D/Graphics/Sprite.h"
 #include "robot2D/Graphics/Text.h"
 

@@ -29,6 +29,8 @@ source distribution.
 #include "game/Audio.h"
 #include "game/States.h"
 
+//ini reader
+
 //work on constants where saving ??
 constexpr float speed = 500.f;
 constexpr float ball_radius = 12.5f;
@@ -38,12 +40,6 @@ constexpr unsigned int emitter_new_sz = 2;
 const robot2D::vec2f ball_velocity(100.0f, -350.0f);
 const robot2D::vec2f paddle_size(100.f, 20.f);
 
-
-namespace {
-    enum TextureID{
-
-    };
-}
 
 GameState::GameState(robot2D::IStateMachine& machine):
     State(machine),
@@ -58,6 +54,25 @@ GameState::GameState(robot2D::IStateMachine& machine):
     setup();
 }
 
+//todo rewrite spawn function
+bool ShouldSpawn(unsigned int chance)
+{
+    unsigned int random = rand() % chance;
+    return random == 0;
+}
+
+bool IsOtherPowerUpActive(std::vector<PowerUp>& powerUps, PowerUpType type)
+{
+    // Check if another PowerUp of the same type is still active
+    // in which case we don't disable its effect (yet)
+    for (const PowerUp& powerUp : powerUps)
+    {
+        if (powerUp.activated)
+            if (powerUp.m_type == type)
+                return true;
+    }
+    return false;
+}
 
 void GameState::load_resources() {
     //load textures
@@ -174,7 +189,6 @@ void GameState::setup() {
                                      AudioFileID::power_up, AudioType::sound);
 }
 
-
 void GameState::handleEvents(const robot2D::Event& event) {
     if (event.type == robot2D::Event::Resized) {
         onResize(robot2D::vec2f(event.size.widht, event.size.heigth));
@@ -217,6 +231,8 @@ void GameState::handleEvents(const robot2D::Event& event) {
     }
 }
 
+// update stage //
+
 void GameState::update(float dt) {
     if(m_state == mState::Pause)
         return;
@@ -246,7 +262,6 @@ void GameState::update(float dt) {
     m_postProcessing.update(dt);
     Audio::getInstanse() -> update_sounds();
 }
-
 
 void GameState::process_input(float dt) {
     // input update //
@@ -280,19 +295,6 @@ void GameState::process_input(float dt) {
         m_ball.stuck = false;
     }
 
-}
-
-bool IsOtherPowerUpActive(std::vector<PowerUp>& powerUps, PowerUpType type)
-{
-    // Check if another PowerUp of the same type is still active
-    // in which case we don't disable its effect (yet)
-    for (const PowerUp& powerUp : powerUps)
-    {
-        if (powerUp.activated)
-            if (powerUp.m_type == type)
-                return true;
-    }
-    return false;
 }
 
 void GameState::update_powerups(float dt) {
@@ -340,28 +342,6 @@ void GameState::update_powerups(float dt) {
                 return powerUp.m_destroyed && !powerUp.activated;
             }),m_power_ups.end());
 }
-
-void GameState::render() {
-    m_postProcessing.preRender();
-    m_window.draw(m_parallax);
-    m_window.draw(m_background);
-    m_window.draw(m_levels[currlevel]);
-    m_window.draw(m_paddle);
-    m_window.draw(m_particleEmitter);
-    m_window.draw(m_ball);
-
-    for(auto& it:m_power_ups)
-        m_window.draw(it);
-    for(int it = 0; it < m_lives; ++it)
-        m_window.draw( m_livesSprites[it]);
-    m_window.draw(m_text);
-    if(m_state == mState::LevelChange)
-        m_window.draw(m_won);
-
-    m_postProcessing.afterRender();
-    m_window.draw(m_postProcessing);
-}
-
 
 void GameState::process_collisions(float dt) {
     for(auto& box: m_levels[currlevel].getTiles()){
@@ -456,13 +436,6 @@ void GameState::reset_game() {
     m_ball.setPos(ballPos);
 }
 
-//todo rewrite spawn function
-bool ShouldSpawn(unsigned int chance)
-{
-    unsigned int random = rand() % chance;
-    return random == 0;
-}
-
 void GameState::spawn_power_up(GameObject& box) {
     PowerUp power_up;
     if (ShouldSpawn(75)) {
@@ -541,10 +514,33 @@ void GameState::changeLevel() {
     reset_game();
 }
 
+// update stage //
+
 void GameState::onResize(const robot2D::vec2f& size) {
     m_windowSize = robot2D::vec2u(size.x, size.y);
     m_background.setScale(robot2D::vec2f(size.x, size.y));
     //m_levels[currlevel].onResize(size);
+}
+
+void GameState::render() {
+    m_postProcessing.preRender();
+    m_window.draw(m_parallax);
+    m_window.draw(m_background);
+    m_window.draw(m_levels[currlevel]);
+    m_window.draw(m_paddle);
+    m_window.draw(m_particleEmitter);
+    m_window.draw(m_ball);
+
+    for(auto& it:m_power_ups)
+        m_window.draw(it);
+    for(int it = 0; it < m_lives; ++it)
+        m_window.draw( m_livesSprites[it]);
+    m_window.draw(m_text);
+    if(m_state == mState::LevelChange)
+        m_window.draw(m_won);
+
+    m_postProcessing.afterRender();
+    m_window.draw(m_postProcessing);
 }
 
 

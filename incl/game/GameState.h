@@ -23,8 +23,8 @@ source distribution.
 
 #include <vector>
 
-#include "robot2D/Core/State.h"
-#include "robot2D/Core/IStateMachine.h"
+#include "robot2D/Extra/State.h"
+#include "robot2D/Extra/IStateMachine.h"
 
 #include "robot2D/Graphics/Sprite.h"
 #include "robot2D/Util/ResourceHandler.h"
@@ -39,7 +39,7 @@ source distribution.
 #include "PowerUp.h"
 #include "Timer.h"
 #include "IDs.h"
-
+#include "Configuration.hpp"
 
 class GameState: public robot2D::State {
 public:

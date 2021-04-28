@@ -36,7 +36,7 @@ enum class PowerUpType{
 class PowerUp: public GameObject{
 public:
     PowerUp();
-    virtual ~PowerUp()override = default;
+    virtual ~PowerUp() override = default;
 
 
 public:

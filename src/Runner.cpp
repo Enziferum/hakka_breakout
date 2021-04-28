@@ -32,7 +32,7 @@ source distribution.
 #include "Runner.hpp"
 
 Runner::Runner(): my_app{robot2D::vec2u(800, 600),
-                         "robot2D Game", true} {
+                         "robot2D Game", true } {
     init();
 }
 

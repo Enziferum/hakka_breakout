@@ -21,7 +21,7 @@ source distribution.
 
 #pragma once
 
-#include "robot2D/Core/App.h"
+#include "robot2D/Extra/App.h"
 #include <robot2D/Util/ResourceHandler.h>
 
 namespace {
