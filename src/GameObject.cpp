@@ -73,11 +73,12 @@ void BallObject::move(float dt) {
     m_sprite.setPosition(m_pos);
 }
 
-void BallObject::reset(const robot2D::vec2f &pos, const robot2D::vec2f &vel) {
-
+void BallObject::reset(const robot2D::vec2f& pos, const robot2D::vec2f& vel) {
+    (void)pos;
+    (void)vel;
 }
 
-BallObject::BallObject():GameObject(), stuck(true), wallbreaker(false), sticky(false),
-        velocity(){
+BallObject::BallObject(): GameObject(), stuck(true), wallbreaker(false),
+        velocity(), sticky(false){
 
 }

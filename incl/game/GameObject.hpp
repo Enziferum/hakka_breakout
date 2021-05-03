@@ -52,8 +52,9 @@ public:
     robot2D::vec2f velocity;
 
     float border;
-    float radius;
+
     bool stuck;
     bool wallbreaker;
     bool sticky; // ??
+    float radius;
 };

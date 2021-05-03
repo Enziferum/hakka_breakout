@@ -30,7 +30,32 @@ source distribution.
 #include "game/States.hpp"
 #include "game/FileManager.hpp"
 
+struct vec3 {
+    float r;
+    float g;
+    float b;
+
+    vec3(float _r, float _g, float _b):
+            r(_r), g(_g), b(_b){}
+    ~vec3() = default;
+};
+
+
 const auto emitter_offset = robot2D::vec2f(6.25f, 6.25f);
+const vec3 wallbreakerColor = vec3(1.f, 0.5f, 0.5f);
+const vec3 stickyColor = vec3(1.f, 0.5f, 1.f);
+const float add_size = 50.f;
+const float speed_multiplier = 1.2;
+const robot2D::vec2f lives_pos = robot2D::vec2f(650, 10);
+const auto live_sz = robot2D::vec2f(robot2D::vec2f(30.f, 30.f));
+
+// reverse data on ball's collide //
+
+const float strength = 2.f;
+const float collider_multipier = 100.f;
+
+// reverse data on ball's collide
+
 FileManager fm;
 
 
@@ -153,12 +178,12 @@ void GameState::setup_configuration() {
 void GameState::setup_ui() {
     auto size = m_window.get_size();
     m_text.setText("Lives:");
-    m_text.setPos(robot2D::vec2f(650, 10));
+    m_text.setPos(lives_pos);
     m_text.setFont(m_fonts.get(ResourceIDs::Font));
     m_won.setFont(m_fonts.get(ResourceIDs::Font));
     m_won.setPos(robot2D::vec2f(200, size.y / 2.f));
 
-    auto live_sz = robot2D::vec2f(robot2D::vec2f(30.f, 30.f));
+
     auto live_start_pos = robot2D::vec2f(m_text.getPos().x + 50, 5);
 
     for(int it = 0; it < m_gameConfiguration -> max_lives; ++it){
@@ -214,7 +239,6 @@ void GameState::setup() {
     m_particleEmitter.setTexture(const_cast<robot2D::Texture& >(m_textures.get(ResourceIDs::Particle)));
 
     m_background.setTexture(m_textures.get(ResourceIDs::Background));
-    m_background.setPosition(robot2D::vec2f(0.f, 0.f));
     m_background.setScale(robot2D::vec2f(size.x, size.y));
 
     m_paddle.m_sprite.setTexture(m_textures.get(ResourceIDs::Paddle));
@@ -223,9 +247,9 @@ void GameState::setup() {
     m_paddle.setSize(m_gameConfiguration -> paddle_size);
 
 
-    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration -> paddle_size.x / 2.0f -
+    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration -> paddle_size.x / 2.f -
                                                     m_gameConfiguration ->ball_radius + m_paddle.m_pos.x,
-                                                    - m_gameConfiguration -> ball_radius * 2.0f + m_paddle.m_pos.y);
+                                                    - m_gameConfiguration -> ball_radius * 2.f + m_paddle.m_pos.y);
 
     m_ball.m_sprite.setTexture(m_textures.get(ResourceIDs::Face));
     m_ball.velocity = m_gameConfiguration -> ball_velocity;
@@ -401,13 +425,13 @@ void GameState::process_collisions(float dt) {
         collision = checkCollision(m_ball, m_paddle);
 
         if(!m_ball.stuck && std::get<0>(collision)) {
-            float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.0f;
+            float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.f;
             float distance = (m_ball.m_pos.x + m_ball.radius) - centerBoard;
-            float percentage = distance / (m_paddle.m_size.x / 2.0f);
+            float percentage = distance / (m_paddle.m_size.x / 2.f);
 
-            float strength = 2.f;
+
             robot2D::vec2f oldVelocity = m_ball.velocity;
-            m_ball.velocity.x = 100.f * percentage * strength;
+            m_ball.velocity.x = collider_multipier * percentage * strength;
             m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
             m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
         }
@@ -430,6 +454,7 @@ void GameState::activate_power(PowerUp& power) {
     switch (power.m_type) {
         case PowerUpType::chaos:
             m_postProcessing.setValue("chaos", true);
+            break;
         case PowerUpType::confuse:
             m_postProcessing.setValue("confuse", true);
             break;
@@ -441,11 +466,12 @@ void GameState::activate_power(PowerUp& power) {
             //
             m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
             m_ball.sticky = true;
+            break;
         case PowerUpType::speed:
-            m_ball.velocity = m_ball.velocity * 1.2;
+            m_ball.velocity = m_ball.velocity * speed_multiplier;
             break;
         case PowerUpType::size:
-            m_paddle.m_size.x += 50;
+            m_paddle.m_size.x += add_size;
             m_paddle.setSize(m_paddle.m_size);
             break;
         default:
@@ -473,9 +499,9 @@ void GameState::reset_game() {
     m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - m_gameConfiguration ->paddle_size.x / 2,
                                    m_windowSize.y - m_gameConfiguration ->paddle_size.y));
 
-    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration ->paddle_size.x / 2.0f -
+    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration ->paddle_size.x / 2.f -
                                             m_gameConfiguration ->ball_radius + m_paddle.m_pos.x,
-                                            -m_gameConfiguration ->ball_radius * 2.0f + m_paddle.m_pos.y);
+                                            -m_gameConfiguration ->ball_radius * 2.f + m_paddle.m_pos.y);
     m_ball.stuck = true;
     m_ball.setPos(ballPos);
 }

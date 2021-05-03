@@ -35,7 +35,7 @@ namespace gui {
     }
 
     void INode::update(float dt) {
-
+        (void)dt;
     }
 
 }

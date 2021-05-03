@@ -20,7 +20,7 @@ source distribution.
 *********************************************************************/
 
 #include <game/FileManager.hpp>
-#include "FileSystem.hpp"
+#include "filesystem/FileSystem.hpp"
 
 FileManager::FileManager(): m_resourceConfiguration(nullptr)
 {
@@ -71,4 +71,4 @@ std::vector<std::string> FileManager::levelsPath() {
     for(auto& level: levels)
         res.emplace_back(levelPath + level);
     return res;
-};
+}

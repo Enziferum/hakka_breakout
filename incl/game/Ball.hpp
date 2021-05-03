@@ -40,3 +40,4 @@ private:
     bool wallbreaker;
     bool sticky; // ??
 };
+

@@ -31,10 +31,11 @@ void ParallaxEffect::setTexture(const robot2D::Texture &texture) {
 }
 
 void ParallaxEffect::update(float dt) {
-
+    (void)dt;
 }
 
 void ParallaxEffect::draw(robot2D::RenderTarget &, robot2D::RenderStates states) const {
+    (void)states;
     if(!m_texture)
         return;
 }
