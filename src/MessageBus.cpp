@@ -18,14 +18,45 @@ and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any
 source distribution.
 *********************************************************************/
+#include <game/MessageBus.hpp>
 
-#include "game/World.hpp"
+namespace {
+    //11 mb of memory
+    //
+    // const auto memory_sz = 1048576u;
+    const auto memory_sz = 10485u;
+}
 
-
-World::World() {
+MessageBus::MessageBus() :
+        in_buffer(memory_sz),
+        out_buffer(memory_sz),
+        in_ptr(out_buffer.data()),
+        out_ptr(in_buffer.data()),
+        current_count(0),
+        wait_count(0) {
 
 }
 
-bool World::setup() {
+const Message& MessageBus::poll() {
+    const Message& msg = *reinterpret_cast<Message *>(out_ptr);
+    //move pointer to next message
+    out_ptr += (MessageSize + msg.m_buffer_sz );
+    current_count--;
+    return msg;
+}
+
+std::size_t MessageBus::bus_size() const {
+    return wait_count;
+}
+
+bool MessageBus::empty() {
+    if (current_count == 0) {
+        in_buffer.swap(out_buffer);
+        in_ptr = out_buffer.data();
+        out_ptr = in_buffer.data();
+        current_count = wait_count;
+        wait_count = 0;
+        return true;
+    }
     return false;
 }

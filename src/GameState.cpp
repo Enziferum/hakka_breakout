@@ -29,6 +29,7 @@ source distribution.
 #include "game/Collisions.hpp"
 #include "game/States.hpp"
 #include "game/FileManager.hpp"
+#include "game/MessageIDs.hpp"
 
 struct vec3 {
     float r;
@@ -59,7 +60,7 @@ const float collider_multipier = 100.f;
 FileManager fm;
 
 
-GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& context):
+GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& context, MessageBus& bus):
     State(machine),
     m_context(context),
     m_audioPlayer(nullptr),
@@ -69,7 +70,8 @@ GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& con
     m_keys(),
     m_keysProcessed(),
     m_bounceTimer(1.5f),
-    m_powerupSystem()
+    m_powerupSystem(),
+    m_bus(bus)
     {
 
     setup();
@@ -177,6 +179,7 @@ void GameState::setup_configuration() {
 
 void GameState::setup_ui() {
     auto size = m_window.get_size();
+
     m_text.setText("Lives:");
     m_text.setPos(lives_pos);
     m_text.setFont(m_fonts.get(ResourceIDs::Font));
@@ -249,7 +252,7 @@ void GameState::setup() {
 
 
     robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration -> paddle_size.x / 2.f -
-                                                    m_gameConfiguration ->ball_radius + m_paddle.m_pos.x,
+                                                    m_gameConfiguration -> ball_radius + m_paddle.m_pos.x,
                                                     - m_gameConfiguration -> ball_radius * 2.f + m_paddle.m_pos.y);
 
     m_ball.m_sprite.setTexture(m_textures.get(ResourceIDs::Face));
@@ -257,8 +260,8 @@ void GameState::setup() {
     m_ball.border = size.x;
     m_ball.radius = m_gameConfiguration -> ball_radius;
     m_ball.setPos(ballPos);
-    m_ball.setSize(robot2D::vec2f(m_gameConfiguration ->ball_radius * 2.f,
-                                  m_gameConfiguration ->ball_radius * 2.f));
+    m_ball.setSize(robot2D::vec2f(m_gameConfiguration -> ball_radius * 2.f,
+                                  m_gameConfiguration -> ball_radius * 2.f));
 
     m_lives = m_gameConfiguration -> max_lives;
 }
@@ -303,8 +306,18 @@ void GameState::handleEvents(const robot2D::Event& event) {
 
             }
         }
+
+
+
     }
+
+
 }
+
+void GameState::forwardMessage(const Message& msg) {
+    m_gameUI.handleMessage(msg);
+}
+
 
 void GameState::onResize(const robot2D::vec2f& size) {
     m_windowSize = robot2D::vec2u(size.x, size.y);
@@ -317,6 +330,11 @@ void GameState::onResize(const robot2D::vec2f& size) {
 
 
 void GameState::update(float dt) {
+    while (!m_bus.empty()) {
+        const auto &m = m_bus.poll();
+        forwardMessage(m);
+    }
+
     float m_border = m_windowSize.y;
 
     if(m_state == mState::Pause)
@@ -482,6 +500,7 @@ void GameState::activate_power(PowerUp& power) {
 // update stage //
 
 void GameState::reset_game() {
+
     if(m_lives == 0) {
         m_machine.pushState(States::Intro);
         m_lives = m_gameConfiguration -> max_lives;
@@ -490,7 +509,10 @@ void GameState::reset_game() {
 
     {
         --m_lives;
+        auto msg = m_bus.post<LivesEvent>(messageIDs::LivesUpdate);
+        msg->new_lives = m_lives;
     }
+
     m_powerupSystem.get().clear();
 
     m_postProcessing.setValue("chaos", false);
@@ -526,12 +548,14 @@ void GameState::render() {
         m_window.draw( m_livesSprites[it]);
 
     m_window.draw(m_text);
+    m_window.draw(m_gameUI);
     if(m_state == mState::LevelChange)
         m_window.draw(m_won);
 
     //m_postProcessing.afterRender();
     //m_window.draw(m_postProcessing);
 }
+
 
 
 

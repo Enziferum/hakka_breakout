@@ -18,14 +18,41 @@ and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any
 source distribution.
 *********************************************************************/
+#include <robot2D/Util/Logger.h>
+#include <robot2D/Graphics/RenderTarget.h>
+#include <robot2D/Graphics/RenderStates.h>
 
-#include "game/World.hpp"
+#include <game/GameUI.hpp>
+#include <game/MessageIDs.hpp>
+#include <game/FileManager.hpp>
 
 
-World::World() {
+GameUI::GameUI() {
+    setup();
+}
+
+void GameUI::setup() {
+    m_fonts.loadFromFile(ResourceIDs::Font, "res/fonts/game_font.ttf");
+
+    m_livesText.setText("Lives:");
+    m_livesText.setPos(robot2D::vec2f(50, 10));
+    m_livesText.setFont(m_fonts.get(ResourceIDs::Font));
+}
+
+void GameUI::handleMessage(const Message& msg) {
+    if(msg.id == messageIDs::LivesUpdate){
+        auto data = msg.unpack<LivesEvent>();
+        const auto text = "Lives: " + std::to_string(data.new_lives);
+        m_livesText.setText(text);
+    }
+}
+
+void GameUI::update(float dt) {
 
 }
 
-bool World::setup() {
-    return false;
+void GameUI::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const {
+    target.draw(m_livesText);
 }
+
+

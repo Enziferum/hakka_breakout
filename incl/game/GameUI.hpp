@@ -21,19 +21,30 @@ source distribution.
 
 #pragma once
 
+#include <robot2D/Graphics/Drawable.h>
 #include <robot2D/Graphics/Text.h>
+#include <robot2D/Util/ResourceHandler.h>
 
+#include "IDs.hpp"
+#include "Message.hpp"
 
-class GameUI {
+class GameUI: public robot2D::Drawable {
 public:
     GameUI();
     ~GameUI() = default;
 
+    void setup();
+    void handleMessage(const Message& msg);
     void update(float dt);
-    void render();
+
+protected:
+    void draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const override;
+
 private:
     robot2D::Text m_livesText;
     robot2D::Text m_winText;
     robot2D::Text m_scoreText;
     robot2D::Text m_timeText;
+
+    robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
 };

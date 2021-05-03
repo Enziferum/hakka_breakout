@@ -19,13 +19,12 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/World.hpp"
+#include "Message.hpp"
 
+enum messageIDs {
+    LivesUpdate = Message::Type::Count
+};
 
-World::World() {
-
-}
-
-bool World::setup() {
-    return false;
-}
+struct LivesEvent final {
+    unsigned int new_lives;
+};

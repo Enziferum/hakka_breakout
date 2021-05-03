@@ -31,7 +31,8 @@ source distribution.
 const std::string resourceiniPath = "res/config.ini";
 const std::string gameiniPath = "res/game.ini";
 
-Runner::Runner(): my_app{robot2D::vec2u(800, 600),
+Runner::Runner(): m_bus(),
+                  my_app{robot2D::vec2u(800, 600),
                          "robot2D Game", true } {
     init();
 }
@@ -76,7 +77,7 @@ void Runner::run() {
 
     my_app.register_state<IntroState>(States::Intro, my_app);
     my_app.register_state<MenuState>(States::Menu, my_app);
-    my_app.register_state<GameState>(States::Game, my_app, m_context);
+    my_app.register_state<GameState>(States::Game, my_app, m_context, m_bus);
     my_app.setCurrent(States::Game);
 
     my_app.run();

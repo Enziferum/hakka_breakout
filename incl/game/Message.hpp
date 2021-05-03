@@ -19,13 +19,37 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/World.hpp"
+#pragma once
 
 
-World::World() {
+#include <cassert>
+#include <cstdint>
 
-}
+class Message final {
+public:
+    Message() :
+            m_buffer(nullptr),
+            m_buffer_sz(0) {}
 
-bool World::setup() {
-    return false;
-}
+    ~Message() = default;
+
+    using ID = int32_t;
+
+    enum Type {
+        Count
+    };
+
+    ID id = -1;
+
+    template<typename T>
+    const T& unpack() const {
+        assert(sizeof(T) == m_buffer_sz);
+        return *static_cast<T *>(m_buffer);
+    }
+
+private:
+    friend class MessageBus;
+
+    void *m_buffer;
+    unsigned int m_buffer_sz;
+};

@@ -44,10 +44,14 @@ source distribution.
 #include "Level.hpp"
 #include "Timer.hpp"
 #include "PowerupSystem.hpp"
+#include "World.hpp"
+
+#include "MessageBus.hpp"
+#include "GameUI.hpp"
 
 class GameState: public robot2D::State {
 public:
-    GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& );
+    GameState(robot2D::IStateMachine& machine, AppContext<ContextID>&, MessageBus& bus);
     ~GameState() override = default;
 
     void handleEvents(const robot2D::Event& event) override;
@@ -59,6 +63,7 @@ private:
     void setup_resources();
     void setup_ui();
 
+    void forwardMessage(const Message& msg);
 private:
     void onResize(const robot2D::vec2f& size);
 
@@ -76,50 +81,38 @@ private:
         LevelChange
     };
 
-
-    AppContext<ContextID>& m_context;
-    AudioPlayer* m_audioPlayer;
-    GameConfiguration* m_gameConfiguration;
-
     mState m_state;
-    robot2D::vec2u m_windowSize;
 
+    MessageBus& m_bus;
+    AppContext<ContextID>& m_context;
+    GameUI m_gameUI;
+    InputManager inputManager;
+    bool m_keys[1024];
+    bool m_keysProcessed[1024];
+    World m_world;
     robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> m_textures;
     robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
-    robot2D::Sprite m_background;
 
-    // effects //
+
+    AudioPlayer* m_audioPlayer;
+    PowerupSystem m_powerupSystem;
+
+    Timer m_bounceTimer;
+    GameConfiguration* m_gameConfiguration;
+    robot2D::vec2u m_windowSize;
+    unsigned int currlevel = 0;
+    unsigned int m_lives;
+
+    robot2D::Sprite m_background;
+    GameObject m_paddle;
+    BallObject m_ball;
+    std::vector<Level> m_levels;
 
     PostProcessing m_postProcessing;
     ParticleEmitter m_particleEmitter;
     ParallaxEffect m_parallax;
 
-    // effects //
-
-    GameObject m_paddle;
-    BallObject m_ball;
-
-    std::vector<Level> m_levels;
-    unsigned int currlevel = 0;
-
-    // gui stuff //
-
     robot2D::Text m_text;
     robot2D::Text m_won;
-    robot2D::Text m_scoreText;
-    robot2D::Text m_timeText;
-
-    int m_lives;
     std::vector<robot2D::Sprite> m_livesSprites;
-    // gui stuff //
-
-    InputManager inputManager;
-    //part of input_manager
-    bool m_keys[1024];
-    bool m_keysProcessed[1024];
-
-    // bounce animation //
-    Timer m_bounceTimer;
-
-    PowerupSystem m_powerupSystem;
 };

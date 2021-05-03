@@ -28,6 +28,7 @@ source distribution.
 #include "ContextIDs.hpp"
 #include "Configuration.hpp"
 #include "AudioPlayer.hpp"
+#include "MessageBus.hpp"
 
 namespace {
     enum Icon {
@@ -51,9 +52,11 @@ private:
 
 private:
     //robot2D::ResourceHandler<robot2D::Texture, Icon> icons;
+    MessageBus m_bus;
     robot2D::App my_app;
 
     AppContext<ContextID> m_context;
     AudioPlayer m_audioPlayer;
     Configuration m_configuration;
+
 };
