@@ -64,11 +64,11 @@ GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& con
     m_context(context),
     m_audioPlayer(nullptr),
     m_gameConfiguration(nullptr),
-    m_keys(),
-    m_keysProcessed() ,
-    m_livesSprites(),
-    m_bounceTimer(1.5f),
     m_state(mState::Play),
+    m_livesSprites(),
+    m_keys(),
+    m_keysProcessed(),
+    m_bounceTimer(1.5f),
     m_powerupSystem()
     {
 
@@ -150,7 +150,7 @@ void GameState::setup_resources() {
         return;
 
 
-    for(int it = 1; it < paths.size(); ++it){
+    for(size_t it = 1; it < paths.size(); ++it){
         Level level;
         level.loadLevel(paths[it], m_textures, robot2D::vec2f(m_windowSize.x,
                                                                  m_windowSize.y / 2),
@@ -186,7 +186,7 @@ void GameState::setup_ui() {
 
     auto live_start_pos = robot2D::vec2f(m_text.getPos().x + 50, 5);
 
-    for(int it = 0; it < m_gameConfiguration -> max_lives; ++it){
+    for(auto it = 0; it < m_gameConfiguration -> max_lives; ++it){
         robot2D::Sprite sprite;
         sprite.setTexture(m_textures.get(ResourceIDs::Face));
         sprite.setScale(live_sz);
@@ -197,7 +197,7 @@ void GameState::setup_ui() {
 }
 
 void GameState::setup() {
-    srand(time(0));
+    srand(time(nullptr));
 
     auto size = m_window.get_size();
     m_windowSize = size;
@@ -206,7 +206,8 @@ void GameState::setup() {
     setup_resources();
     setup_ui();
 
-    m_bounceTimer.onTick([this](float dt){
+    m_bounceTimer.onTick([this](float dt) {
+        (void)dt;
         if(currlevel < m_levels.size())
             ++currlevel;
         m_bounceTimer.reset();
@@ -299,7 +300,7 @@ void GameState::handleEvents(const robot2D::Event& event) {
 
         if (event.type == robot2D::Event::MousePressed) {
             if (event.mouse.btn == robot2D::Event::MouseButtonEvent::left) {
-                robot2D::vec2f mouse_pos(event.mouse.x, event.mouse.y);
+
             }
         }
     }
@@ -327,7 +328,7 @@ void GameState::update(float dt) {
     }
 
     process_input(dt);
-    process_collisions(dt);
+    process_collisions();
     m_ball.move(dt);
 
     m_levels[currlevel].update(dt);
@@ -379,8 +380,7 @@ void GameState::process_input(float dt) {
 
 }
 
-void GameState::process_collisions(float dt) {
-
+void GameState::process_collisions() {
     for(auto& box: m_levels[currlevel].getTiles()) {
         if(box.m_destroyed)
             continue;

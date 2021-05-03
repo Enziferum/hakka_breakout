@@ -63,22 +63,23 @@ private:
     void onResize(const robot2D::vec2f& size);
 
     void process_input(float dt);
-    void process_collisions(float dt);
+    void process_collisions();
 
     void activate_power(PowerUp& power);
 
     void reset_game();
     void changeLevel();
 private:
-    AppContext<ContextID>& m_context;
-    AudioPlayer* m_audioPlayer;
-    GameConfiguration* m_gameConfiguration;
-
     enum class mState{
         Play,
         Pause,
         LevelChange
     };
+
+
+    AppContext<ContextID>& m_context;
+    AudioPlayer* m_audioPlayer;
+    GameConfiguration* m_gameConfiguration;
 
     mState m_state;
     robot2D::vec2u m_windowSize;
@@ -104,11 +105,12 @@ private:
     // gui stuff //
 
     robot2D::Text m_text;
-    std::vector<robot2D::Sprite> m_livesSprites;
-
     robot2D::Text m_won;
-    int m_lives;
+    robot2D::Text m_scoreText;
+    robot2D::Text m_timeText;
 
+    int m_lives;
+    std::vector<robot2D::Sprite> m_livesSprites;
     // gui stuff //
 
     InputManager inputManager;

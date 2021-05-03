@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-robot2D - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,4 +19,21 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "game/World.hpp"
+#pragma once
+
+#include <robot2D/Graphics/Text.h>
+
+
+class GameUI {
+public:
+    GameUI();
+    ~GameUI() = default;
+
+    void update(float dt);
+    void render();
+private:
+    robot2D::Text m_livesText;
+    robot2D::Text m_winText;
+    robot2D::Text m_scoreText;
+    robot2D::Text m_timeText;
+};

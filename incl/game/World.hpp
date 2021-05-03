@@ -21,6 +21,12 @@ source distribution.
 
 #pragma once
 
+#include <robot2D/Util/ResourceHandler.h>
+#include <robot2D/Graphics/Texture.h>
+#include <robot2D/Graphics/Font.h>
+
+#include "IDs.hpp"
+
 class World {
 public:
     World();
@@ -31,6 +37,6 @@ public:
     World& operator=(const World&& ) = delete;
     ~World() = default;
 
-
+    bool setup();
 private:
 };

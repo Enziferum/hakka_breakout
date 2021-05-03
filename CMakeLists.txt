@@ -23,10 +23,10 @@ if (BUILD_INIH)
 else()
     message("don't have find package ")
 endif ()
+
 include_directories(${Inih_INCLUDE_DIRS})
-
-
 include_directories(${CMAKE_SOURCE_DIR}/incl)
+
 file(GLOB_RECURSE SRC src/*.cpp)
 
 set(LIBS robot2D sfml-audio)
