@@ -22,9 +22,19 @@ source distribution.
 #include "Message.hpp"
 
 enum messageIDs {
-    LivesUpdate = Message::Type::Count
+    LivesUpdate = Message::Type::Count,
+    LevelChange,
+    LivesEnd
 };
 
 struct LivesEvent final {
     unsigned int new_lives;
+};
+
+struct LevelEvent final {
+
+};
+
+struct LivesEndEvent final {
+
 };

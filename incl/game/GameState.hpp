@@ -66,13 +66,6 @@ private:
     void forwardMessage(const Message& msg);
 private:
     void onResize(const robot2D::vec2f& size);
-
-    void process_input(float dt);
-    void process_collisions();
-
-    void activate_power(PowerUp& power);
-
-    void reset_game();
     void changeLevel();
 private:
     enum class mState{
@@ -85,32 +78,14 @@ private:
 
     MessageBus& m_bus;
     AppContext<ContextID>& m_context;
+    GameConfiguration* m_gameConfiguration;
     GameUI m_gameUI;
-    InputManager inputManager;
-    bool m_keys[1024];
-    bool m_keysProcessed[1024];
     World m_world;
+    AudioPlayer* m_audioPlayer;
+    Timer m_bounceTimer;
+
     robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> m_textures;
     robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
-
-
-    AudioPlayer* m_audioPlayer;
-    PowerupSystem m_powerupSystem;
-
-    Timer m_bounceTimer;
-    GameConfiguration* m_gameConfiguration;
-    robot2D::vec2u m_windowSize;
-    unsigned int currlevel = 0;
-    unsigned int m_lives;
-
-    robot2D::Sprite m_background;
-    GameObject m_paddle;
-    BallObject m_ball;
-    std::vector<Level> m_levels;
-
-    PostProcessing m_postProcessing;
-    ParticleEmitter m_particleEmitter;
-    ParallaxEffect m_parallax;
 
     robot2D::Text m_text;
     robot2D::Text m_won;

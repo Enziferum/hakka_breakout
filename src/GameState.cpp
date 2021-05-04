@@ -26,7 +26,6 @@ source distribution.
 #include <robot2D/Util/Logger.h>
 
 #include "game/GameState.hpp"
-#include "game/Collisions.hpp"
 #include "game/States.hpp"
 #include "game/FileManager.hpp"
 #include "game/MessageIDs.hpp"
@@ -41,24 +40,14 @@ struct vec3 {
     ~vec3() = default;
 };
 
-
 const auto emitter_offset = robot2D::vec2f(6.25f, 6.25f);
 const vec3 wallbreakerColor = vec3(1.f, 0.5f, 0.5f);
 const vec3 stickyColor = vec3(1.f, 0.5f, 1.f);
-const float add_size = 50.f;
-const float speed_multiplier = 1.2;
+
 const robot2D::vec2f lives_pos = robot2D::vec2f(650, 10);
 const auto live_sz = robot2D::vec2f(robot2D::vec2f(30.f, 30.f));
 
-// reverse data on ball's collide //
-
-const float strength = 2.f;
-const float collider_multipier = 100.f;
-
-// reverse data on ball's collide
-
 FileManager fm;
-
 
 GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& context, MessageBus& bus):
     State(machine),
@@ -67,11 +56,9 @@ GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& con
     m_gameConfiguration(nullptr),
     m_state(mState::Play),
     m_livesSprites(),
-    m_keys(),
-    m_keysProcessed(),
     m_bounceTimer(1.5f),
-    m_powerupSystem(),
-    m_bus(bus)
+    m_bus(bus),
+    m_world(m_bus, m_textures)
     {
 
     setup();
@@ -151,13 +138,8 @@ void GameState::setup_resources() {
     if(paths.empty())
         return;
 
-
-    for(size_t it = 1; it < paths.size(); ++it){
-        Level level;
-        level.loadLevel(paths[it], m_textures, robot2D::vec2f(m_windowSize.x,
-                                                                 m_windowSize.y / 2),
-                  robot2D::vec2f(0.f, 50.f));
-        m_levels.push_back(level);
+    if(!m_world.setupLevels(paths, m_textures)){
+        return;
     }
 }
 
@@ -202,70 +184,23 @@ void GameState::setup_ui() {
 void GameState::setup() {
     srand(time(nullptr));
 
-    auto size = m_window.get_size();
-    m_windowSize = size;
-
     setup_configuration();
     setup_resources();
     setup_ui();
 
     m_bounceTimer.onTick([this](float dt) {
         (void)dt;
-        if(currlevel < m_levels.size())
-            ++currlevel;
+//        if(currlevel < m_levels.size())
+//            ++currlevel;
         m_bounceTimer.reset();
         m_state = mState::Play;
     });
 
-    m_powerupSystem.setCallback([this](const PowerUpType& type){
-        switch (type) {
-            case PowerUpType::chaos:
-                m_postProcessing.setValue("chaos", false);
-                break;
-            case PowerUpType::confuse:
-                m_postProcessing.setValue("confuse", false);
-                break;
-            case PowerUpType::wallbreaker:
-                m_ball.color = robot2D::Color::White;
-                m_ball.wallbreaker = false;
-                break;
-            case PowerUpType::sticky:
-                m_ball.sticky = false;
-                m_ball.color = robot2D::Color::White;
-                break;
-            default:
-                break;
-        }
-    });
+    if(!m_world.setup(m_gameConfiguration, m_audioPlayer)) {
+        return;
+    }
 
-    m_postProcessing.set_size(m_windowSize);
-
-    m_particleEmitter.setTexture(const_cast<robot2D::Texture& >(m_textures.get(ResourceIDs::Particle)));
-
-    m_background.setTexture(m_textures.get(ResourceIDs::Background));
-    m_background.setScale(robot2D::vec2f(size.x, size.y));
-
-    m_paddle.m_sprite.setTexture(m_textures.get(ResourceIDs::Paddle));
-    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - m_gameConfiguration -> paddle_size.x / 2,
-                    size.y - m_gameConfiguration -> paddle_size.y));
-    m_paddle.setSize(m_gameConfiguration -> paddle_size);
-
-
-    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration -> paddle_size.x / 2.f -
-                                                    m_gameConfiguration -> ball_radius + m_paddle.m_pos.x,
-                                                    - m_gameConfiguration -> ball_radius * 2.f + m_paddle.m_pos.y);
-
-    m_ball.m_sprite.setTexture(m_textures.get(ResourceIDs::Face));
-    m_ball.velocity = m_gameConfiguration -> ball_velocity;
-    m_ball.border = size.x;
-    m_ball.radius = m_gameConfiguration -> ball_radius;
-    m_ball.setPos(ballPos);
-    m_ball.setSize(robot2D::vec2f(m_gameConfiguration -> ball_radius * 2.f,
-                                  m_gameConfiguration -> ball_radius * 2.f));
-
-    m_lives = m_gameConfiguration -> max_lives;
 }
-
 
 void GameState::handleEvents(const robot2D::Event& event) {
     if (event.type == robot2D::Event::Resized) {
@@ -292,50 +227,40 @@ void GameState::handleEvents(const robot2D::Event& event) {
                 changeLevel();
         }
 
-        if (event.type == robot2D::Event::KeyPressed) {
-            m_keys[event.key.code] = true;
-        }
-
-        if (event.type == robot2D::Event::KeyReleased) {
-            m_keys[event.key.code] = false;
-            m_keysProcessed[event.key.code] = false;
-        }
-
         if (event.type == robot2D::Event::MousePressed) {
             if (event.mouse.btn == robot2D::Event::MouseButtonEvent::left) {
 
             }
         }
 
-
-
+        m_world.handleEvents(event);
     }
-
-
 }
-
-void GameState::forwardMessage(const Message& msg) {
-    m_gameUI.handleMessage(msg);
-}
-
 
 void GameState::onResize(const robot2D::vec2f& size) {
-    m_windowSize = robot2D::vec2u(size.x, size.y);
-    m_background.setScale(robot2D::vec2f(size.x, size.y));
+    //m_windowSize = robot2D::vec2u(size.x, size.y);
+    //m_background.setScale(robot2D::vec2f(size.x, size.y));
     //m_levels[currlevel].onResize(size);
 }
 
+void GameState::forwardMessage(const Message& msg) {
+    if(msg.id == messageIDs::LevelChange) {
+        changeLevel();
+    }
 
-// update stage //
+    if(msg.id == messageIDs::LivesEnd){
+        m_machine.pushState(States::Intro);
+        return;
+    }
 
+    m_gameUI.handleMessage(msg);
+}
 
 void GameState::update(float dt) {
     while (!m_bus.empty()) {
         const auto &m = m_bus.poll();
         forwardMessage(m);
     }
-
-    float m_border = m_windowSize.y;
 
     if(m_state == mState::Pause)
         return;
@@ -345,212 +270,28 @@ void GameState::update(float dt) {
         return;
     }
 
-    process_input(dt);
-    process_collisions();
-    m_ball.move(dt);
-
-    m_levels[currlevel].update(dt);
-    m_parallax.update(dt);
-    m_particleEmitter.update(dt, m_gameConfiguration -> emitter_new_sz, m_ball, emitter_offset);
-    m_postProcessing.update(dt);
-    m_audioPlayer -> update_sounds();
-    m_powerupSystem.update(dt);
-
-
-    if(m_ball.m_pos.y >= m_border)
-        reset_game();
-
-    if(m_levels[currlevel].destroyed())
-        changeLevel();
-}
-
-void GameState::process_input(float dt) {
-    // input update //
-    float velocity = dt * m_gameConfiguration ->speed;
-
-    if(m_keys[robot2D::A]) {
-        if (m_paddle.m_pos.x >= 0.f) {
-            m_paddle.m_pos.x -= velocity;
-            m_paddle.m_sprite.setPosition(m_paddle.m_pos);
-            if (m_ball.stuck) {
-                m_ball.m_pos.x -= velocity;
-                m_ball.m_sprite.setPosition(m_ball.m_pos);
-            }
-        }
-    }
-
-    if(m_keys[robot2D::D]) {
-        if (m_paddle.m_pos.x <= m_windowSize.x
-                                - m_paddle.m_size.x) {
-            m_paddle.m_pos.x += velocity;
-            m_paddle.m_sprite.setPosition(m_paddle.m_pos);
-
-            if (m_ball.stuck) {
-                m_ball.m_pos.x += velocity;
-                m_ball.m_sprite.setPosition(m_ball.m_pos);
-            }
-        }
-    }
-
-    if(m_keys[robot2D::SPACE]) {
-        m_ball.stuck = false;
-    }
-
-}
-
-void GameState::process_collisions() {
-    for(auto& box: m_levels[currlevel].getTiles()) {
-        if(box.m_destroyed)
-            continue;
-
-        auto collision = checkCollision(m_ball, box);
-
-        if(std::get<0>(collision)) {
-
-            if (!box.m_solid) {
-                // todo rewrite spawn function
-                m_powerupSystem.spawn_powerup(m_textures, box.m_pos);
-                box.m_destroyed = true;
-                m_audioPlayer->play(AudioFileID::bleep_1);
-            } else {
-                m_postProcessing.setValue("shake", true);
-                m_audioPlayer->play(AudioFileID::solid);
-            }
-
-
-            auto dir = std::get<1>(collision);
-            auto vec = std::get<2>(collision);
-
-            if (!m_ball.wallbreaker && !m_ball.m_solid) {
-                if (dir == Direction::left || dir == Direction::right) {
-                    m_ball.velocity.x = -m_ball.velocity.x;
-                    float penetration = m_ball.radius - std::abs(vec.x);
-                    if (dir == Direction::left)
-                        m_ball.m_pos.x += penetration;
-                    else
-                        m_ball.m_pos.x -= penetration;
-                } else {
-                    m_ball.velocity.y = -m_ball.velocity.y;
-                    float penetration = m_ball.radius - std::abs(vec.y);
-                    if (dir == Direction::up)
-                        m_ball.m_pos.y -= penetration;
-                    else
-                        m_ball.m_pos.y += penetration;
-                }
-            }
-        }
-
-        collision = checkCollision(m_ball, m_paddle);
-
-        if(!m_ball.stuck && std::get<0>(collision)) {
-            float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.f;
-            float distance = (m_ball.m_pos.x + m_ball.radius) - centerBoard;
-            float percentage = distance / (m_paddle.m_size.x / 2.f);
-
-
-            robot2D::vec2f oldVelocity = m_ball.velocity;
-            m_ball.velocity.x = collider_multipier * percentage * strength;
-            m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
-            m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
-        }
-    }
-
-    for(auto& powerit: m_powerupSystem.get()) {
-        auto collision = checkCollision(powerit, m_paddle);
-        if(powerit.m_pos.y >= m_windowSize.y)
-            powerit.m_destroyed = true;
-
-        if(collision) {
-            activate_power(powerit);
-            powerit.m_destroyed = true;
-            powerit.activated = true;
-        }
-    }
-}
-
-void GameState::activate_power(PowerUp& power) {
-    switch (power.m_type) {
-        case PowerUpType::chaos:
-            m_postProcessing.setValue("chaos", true);
-            break;
-        case PowerUpType::confuse:
-            m_postProcessing.setValue("confuse", true);
-            break;
-        case PowerUpType::wallbreaker:
-            m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 0.5f);
-            m_ball.wallbreaker = true;
-            break;
-        case PowerUpType::sticky:
-            //
-            m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
-            m_ball.sticky = true;
-            break;
-        case PowerUpType::speed:
-            m_ball.velocity = m_ball.velocity * speed_multiplier;
-            break;
-        case PowerUpType::size:
-            m_paddle.m_size.x += add_size;
-            m_paddle.setSize(m_paddle.m_size);
-            break;
-        default:
-            break;
-    }
-}
-
-// update stage //
-
-void GameState::reset_game() {
-
-    if(m_lives == 0) {
-        m_machine.pushState(States::Intro);
-        m_lives = m_gameConfiguration -> max_lives;
-        return;
-    }
-
-    {
-        --m_lives;
-        auto msg = m_bus.post<LivesEvent>(messageIDs::LivesUpdate);
-        msg->new_lives = m_lives;
-    }
-
-    m_powerupSystem.get().clear();
-
-    m_postProcessing.setValue("chaos", false);
-    m_postProcessing.setValue("confuse", false);
-
-    m_paddle.setPos(robot2D::vec2f(m_windowSize.x / 2.f - m_gameConfiguration ->paddle_size.x / 2,
-                                   m_windowSize.y - m_gameConfiguration ->paddle_size.y));
-
-    robot2D::vec2f ballPos = robot2D::vec2f(m_gameConfiguration ->paddle_size.x / 2.f -
-                                            m_gameConfiguration ->ball_radius + m_paddle.m_pos.x,
-                                            -m_gameConfiguration ->ball_radius * 2.f + m_paddle.m_pos.y);
-    m_ball.stuck = true;
-    m_ball.setPos(ballPos);
+    m_world.update(dt);
 }
 
 void GameState::changeLevel() {
     m_state = mState::LevelChange;
     m_won.setText("Congratulations! You won!");
-    reset_game();
 }
 
 void GameState::render() {
     //m_postProcessing.preRender();
-    m_window.draw(m_parallax);
-    m_window.draw(m_background);
-    m_window.draw(m_levels[currlevel]);
-    m_window.draw(m_particleEmitter);
-    m_window.draw(m_paddle);
-    m_window.draw(m_ball);
-    m_window.draw(m_powerupSystem);
 
-    for(int it = 0; it < m_lives; ++it)
-        m_window.draw( m_livesSprites[it]);
-
-    m_window.draw(m_text);
+    m_window.draw(m_world);
     m_window.draw(m_gameUI);
-    if(m_state == mState::LevelChange)
-        m_window.draw(m_won);
+
+//
+//    for(int it = 0; it < m_lives; ++it)
+//        m_window.draw( m_livesSprites[it]);
+//
+//    m_window.draw(m_text);
+//    m_window.draw(m_gameUI);
+//    if(m_state == mState::LevelChange)
+//        m_window.draw(m_won);
 
     //m_postProcessing.afterRender();
     //m_window.draw(m_postProcessing);

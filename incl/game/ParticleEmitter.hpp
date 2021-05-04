@@ -19,6 +19,8 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
+#pragma once
+
 #include <vector>
 
 #include <robot2D/Graphics/Shader.h>
@@ -26,8 +28,6 @@ source distribution.
 
 #include "GameObject.hpp"
 #include "Particle.hpp"
-
-
 
 class ParticleEmitter: public robot2D::Drawable{
 public:
