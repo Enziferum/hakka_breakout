@@ -21,7 +21,7 @@ source distribution.
 
 #include <game/PauseState.hpp>
 
-PauseState::PauseState(robot2D::IStateMachine& machine) : State(machine) {
+PauseState::PauseState(robot2D::IStateMachine &machine) : State(machine) {
 
 }
 

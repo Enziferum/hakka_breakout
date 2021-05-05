@@ -30,17 +30,23 @@ source distribution.
 
 #include "game/gui/Gui.hpp"
 
-class MenuState: public robot2D::State{
+class MenuState : public robot2D::State {
 public:
-    MenuState(robot2D::IStateMachine& machine);
-    ~MenuState()override = default;
+    MenuState(robot2D::IStateMachine &machine);
 
-    void handleEvents(const robot2D::Event& event);
+    ~MenuState() override = default;
+
+    void handleEvents(const robot2D::Event &event);
+
     void update(float dt) override;
+
     void render() override;
+
 private:
     void setup();
+
     void load_resources();
+
 private:
     robot2D::ResourceHandler<robot2D::Texture> m_textures;
     robot2D::Sprite m_background;

@@ -25,10 +25,11 @@ source distribution.
 #include "INode.hpp"
 
 namespace gui {
-    class Label: public INode {
+    class Label : public INode {
     public:
         Label();
-        ~Label()override = default;
+
+        ~Label() override = default;
 
         void onPress(const robot2D::vec2f &f) override;
 
@@ -37,6 +38,6 @@ namespace gui {
         void update(float dt) override;
 
     protected:
-        void draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const override;
+        void draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const override;
     };
 }
