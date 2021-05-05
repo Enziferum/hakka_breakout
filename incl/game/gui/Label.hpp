@@ -29,5 +29,14 @@ namespace gui {
     public:
         Label();
         ~Label()override = default;
+
+        void onPress(const robot2D::vec2f &f) override;
+
+        void onHover(const robot2D::vec2f &f) override;
+
+        void update(float dt) override;
+
+    protected:
+        void draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const override;
     };
 }

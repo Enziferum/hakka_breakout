@@ -110,7 +110,7 @@ bool World::setup(GameConfiguration* gameConfiguration, AudioPlayer* audioPlayer
 bool World::setupLevels(const std::vector<std::string>& paths,
                         robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& textures) {
 
-    for(size_t it = 0; it < paths.size(); ++it) {
+    for(size_t it = 1; it < paths.size(); ++it) {
         Level level;
         level.loadLevel(paths[it], textures, robot2D::vec2f(m_windowSize.x,
                                                             m_windowSize.y / 2),

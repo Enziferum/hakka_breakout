@@ -23,6 +23,8 @@ source distribution.
 #include <robot2D/Graphics/RenderStates.h>
 #include "game/gui/Button.hpp"
 
+#include <robot2D/Util/Logger.h>
+
 namespace gui{
     Button::Button(): INode(),
     m_function(nullptr),
@@ -36,7 +38,18 @@ namespace gui{
     }
 
     void Button::onPress(const robot2D::vec2f& mpos) {
+        if(!m_texture)
+            return;
 
+        // local bounds //
+        float w = std::abs(m_size.x);
+        float h = std::abs(m_size.y);
+        auto bounds = robot2D::FloatRect(0.f, 0.f, w, h);
+
+        auto globalBounds = getTransform().transformRect(bounds);
+
+        if(globalBounds.contains(mpos))
+            m_pressed = true;
     }
 
     void Button::onHover(const robot2D::vec2f& mpos) {
@@ -52,6 +65,8 @@ namespace gui{
 
     void Button::setTexture(const robot2D::Texture& texture) {
         m_texture = &texture;
+        auto size = m_texture -> get_size();
+        setSize(robot2D::vec2f(size.x, size.y));
     }
 
     void Button::onTouch(std::function<void()>&& function) {
@@ -61,7 +76,10 @@ namespace gui{
     void Button::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const {
         if(!m_texture)
             return;
-        states.transform *= getTransform();
+
+        auto t = getTransform();
+        t = t.scale(m_size);
+        states.transform *= t;
         states.texture = m_texture;
         states.color = robot2D::Color::White;
         target.draw(states);

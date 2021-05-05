@@ -23,4 +23,13 @@ source distribution.
 
 namespace gui {
 
+    void Label::onPress(const robot2D::vec2f& f) {}
+
+    void Label::onHover(const robot2D::vec2f& f) {}
+
+    void Label::update(float dt) {}
+
+    void Label::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const
+    {
+    }
 }

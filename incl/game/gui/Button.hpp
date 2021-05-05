@@ -30,7 +30,7 @@ source distribution.
 
 namespace gui {
 
-    class Button: public INode{
+    class Button: public INode {
     public:
         Button();
         virtual ~Button() override = default;

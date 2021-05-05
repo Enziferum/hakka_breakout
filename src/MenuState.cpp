@@ -27,6 +27,7 @@ source distribution.
 
 const std::string back_path = "res/textures/cityskyline.png";
 const std::string menu_buttonPath = "res/textures/menu_button.png";
+const auto button_size = robot2D::vec2f(200, 50);
 
 MenuState::MenuState(robot2D::IStateMachine& machine) :
 State(machine) {
@@ -34,11 +35,7 @@ State(machine) {
 }
 
 void MenuState::handleEvents(const robot2D::Event& event) {
-    //todo resize UI
-    if(event.type == robot2D::Event::Resized){
-
-    }
-
+    if(event.type == robot2D::Event::Resized){}
     m_gui.handleEvents(event);
 }
 
@@ -67,39 +64,28 @@ void MenuState::setup() {
 
     auto size = m_window.get_size();
 
-    const auto button_size = robot2D::vec2f(200, 50);
-
     auto start_btn = gui::Button::create();
     start_btn -> setTexture(m_textures.get("button"));
     start_btn -> setPosition(robot2D::vec2f(size.x / 2 - button_size.x / 2, size.y / 2 - 100
                                                                     - button_size.y / 2));
-    start_btn -> setScale(button_size);
+    auto sz = m_textures.get("button").get_size();
+    start_btn -> scale(robot2D::vec2f (button_size.x / sz.x, button_size.y / sz.y));
+
     start_btn -> onTouch([this]() {
        m_machine.pushState(States::Game);
     });
 
-
-    auto set_btn = gui::Button::create();
-    set_btn -> setTexture(m_textures.get("button"));
-    set_btn -> setScale(button_size);
-    auto pos = start_btn -> getPosition();
-    set_btn -> setPosition(robot2D::vec2f(pos.x, pos.y + 100 - button_size.y / 2));
-    set_btn -> onTouch([this](){
-        //todo show settings
-    });
-
     auto end_btn = gui::Button::create();
     end_btn -> setTexture(m_textures.get("button"));
-    end_btn -> setScale(button_size);
-    auto end_pos = set_btn -> getPosition();
+    end_btn -> setScale(robot2D::vec2f (button_size.x / sz.x, button_size.y / sz.y));
+
+    auto end_pos = start_btn -> getPosition();
     end_btn -> setPosition(robot2D::vec2f(end_pos.x, end_pos.y + 100 - button_size.y / 2));
     end_btn -> onTouch([this](){
-        //todo set close callback
         m_window.close();
     });
 
     m_gui.pack(start_btn);
-    m_gui.pack(set_btn);
     m_gui.pack(end_btn);
 
     m_background.setTexture(m_textures.get("back"));
