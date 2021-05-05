@@ -61,7 +61,6 @@ private:
     void setup();
     void setup_configuration();
     void setup_resources();
-    void setup_ui();
 
     void forwardMessage(const Message& msg);
 private:

@@ -40,21 +40,3 @@ public:
     bool m_destroyed;
     robot2D::Color color;
 };
-
-class BallObject: public GameObject {
-public:
-    BallObject();
-    ~BallObject() = default;
-
-    void move(float dt);
-    void reset(const robot2D::vec2f& pos, const robot2D::vec2f& vel);
-public:
-    robot2D::vec2f velocity;
-
-    float border;
-
-    bool stuck;
-    bool wallbreaker;
-    bool sticky; // ??
-    float radius;
-};

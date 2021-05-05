@@ -32,6 +32,11 @@ source distribution.
 #include "GameObject.hpp"
 #include "IDs.hpp"
 
+
+struct LevelBlock: public GameObject {
+    unsigned int block_id;
+};
+
 class Level: public robot2D::Drawable {
 public:
     Level();
@@ -45,13 +50,13 @@ public:
     void onResize(const robot2D::vec2f& size);
 
     bool destroyed() const;
-    std::vector<GameObject>& getTiles();
+    std::vector<LevelBlock>& getTiles();
 protected:
 
     void draw(robot2D::RenderTarget& target,
               robot2D::RenderStates states) const override;
 private:
-    std::vector<GameObject> m_tiles;
+    std::vector<LevelBlock> m_tiles;
     robot2D::vec2f m_size;
 
     //size of level

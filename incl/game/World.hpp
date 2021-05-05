@@ -57,6 +57,7 @@ public:
                      robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& textures);
 
     void handleEvents(const robot2D::Event& event);
+    void forwardMessage(const Message& message);
     void update(float dt);
 
 protected:
@@ -68,7 +69,8 @@ private:
 
     void activate_power(PowerUp& power);
 
-    void reset_game();
+    void reset_game(bool update_lifes = true);
+    void change_level();
 private:
     MessageBus& m_messageBus;
 

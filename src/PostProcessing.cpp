@@ -58,6 +58,8 @@ void PostProcessing::draw(robot2D::RenderTarget& target, robot2D::RenderStates s
 
 //rewrite this function
 void PostProcessing::setup_GL() {
+    return;
+
     if(!m_effectShader.createShader(robot2D::shaderType::vertex,"res/shaders/effects.vs")) {
         LOG_ERROR("Can't process % ", "res/shaders/effects.vs")
         return;

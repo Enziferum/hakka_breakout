@@ -25,21 +25,18 @@ source distribution.
 #include <map>
 #include <iostream>
 
-#include <robot2D/Graphics/GL.h>
 #include "robot2D/Graphics/RenderTarget.h"
 #include "game/Level.hpp"
-//#include <robot2D/Graphics/Matrix.hpp>
 
-#include <unordered_map>
 
 
 
 std::map<int, robot2D::Color> tile_colors = {
-        {1, robot2D::Color::from_gl(0.8f, 0.8f, 0.7f)},
-        {2, robot2D::Color::from_gl(0.2f, 0.6f, 1.0f)},
-        {3, robot2D::Color::from_gl(0.0f, 0.7f, 0.0f)},
-        {4, robot2D::Color::from_gl(0.8f, 0.8f, 0.4f)},
-        {5, robot2D::Color::from_gl(1.0f, 0.5f, 0.0)},
+        {1, robot2D::Color::from_gl(0.8f, 0.8f, 0.7f, 0.1f)},
+        {2, robot2D::Color::from_gl(0.2f, 0.6f, 1.0f, 0.1f)},
+        {3, robot2D::Color::from_gl(0.0f, 0.7f, 0.0f, 0.1f)},
+        {4, robot2D::Color::from_gl(0.8f, 0.8f, 0.4f, 0.1f)},
+        {5, robot2D::Color::from_gl(1.0f, 0.5f, 0.0, 0.1f)},
 };
 
 
@@ -87,7 +84,8 @@ bool Level::loadLevel(const std::string& path, const robot2D::ResourceHandler<ro
             if(c < 1 ||  c > 5)
                 continue;
 
-            GameObject object;
+            LevelBlock object;
+            object.block_id = rh - y;
             if(c == 1){
                 object.m_solid = true;
                 object.m_sprite.setTexture(handler.get(ResourceIDs::Solid));
@@ -120,10 +118,6 @@ void Level::update(float dt) {
     }),m_tiles.end());
 }
 
-struct Matrix {
-    float mat[4][4];
-};
-
 void Level::draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const {
     for(auto& it: m_tiles){
         if(it.m_destroyed)
@@ -142,7 +136,7 @@ bool Level::destroyed() const {
     return res;
 }
 
-std::vector<GameObject> &Level::getTiles() {
+std::vector<LevelBlock> &Level::getTiles() {
     return m_tiles;
 }
 

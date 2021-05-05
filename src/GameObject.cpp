@@ -19,21 +19,15 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <iostream>
+#include <robot2D/Graphics/RenderTarget.h>
 #include "game/GameObject.hpp"
-#include "robot2D/Graphics/RenderTarget.h"
+
 
 GameObject::GameObject():
 m_solid(false),
 m_destroyed(false),
 color(robot2D::Color::White) {
 
-}
-
-void GameObject::draw(robot2D::RenderTarget& target,
-                      robot2D::RenderStates states) const {
-    states.color = color;
-    target.draw(m_sprite, states);
 }
 
 void GameObject::setSize(const robot2D::vec2f& size) {
@@ -46,39 +40,10 @@ void GameObject::setPos(const robot2D::vec2f &pos) {
     m_sprite.setPosition(m_pos);
 }
 
-
-void BallObject::move(float dt) {
-    if(stuck)
-        return;
-    // move the ball
-    auto vel = velocity;
-    m_pos += vel * dt;
-    // check if outside window bounds; if so, reverse velocity and restore at correct position
-    if (m_pos.x <= 0.0f)
-    {
-        velocity.x = -velocity.x;
-        m_pos.x = 0.0f;
-    }
-    else if (m_pos.x + m_size.x >= border)
-    {
-        velocity.x = -velocity.x;
-        m_pos.x = border - m_size.x;
-    }
-    if (m_pos.y <= 0.0f)
-    {
-        velocity.y = -velocity.y;
-        m_pos.y = 0.0f;
-    }
-
-    m_sprite.setPosition(m_pos);
+void GameObject::draw(robot2D::RenderTarget& target,
+                      robot2D::RenderStates states) const {
+    states.color = color;
+    target.draw(m_sprite, states);
 }
 
-void BallObject::reset(const robot2D::vec2f& pos, const robot2D::vec2f& vel) {
-    (void)pos;
-    (void)vel;
-}
 
-BallObject::BallObject(): GameObject(), stuck(true), wallbreaker(false),
-        velocity(), sticky(false){
-
-}

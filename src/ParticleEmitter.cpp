@@ -33,15 +33,16 @@ m_texture(nullptr){
 }
 
 void ParticleEmitter::setup() {
-    if(!m_particleShader.createShader(robot2D::shaderType::vertex,
-                                  "res/shaders/particle.vs")){
-        return;
-    }
-
-    if(!m_particleShader.createShader(robot2D::shaderType::fragment,
-                                  "res/shaders/particle.fs")) {
-        return;
-    }
+    return;
+//    if(!m_particleShader.createShader(robot2D::shaderType::vertex,
+//                                  "res/shaders/particle.vs")){
+//        return;
+//    }
+//
+//    if(!m_particleShader.createShader(robot2D::shaderType::fragment,
+//                                  "res/shaders/particle.fs")) {
+//        return;
+//    }
 
     for(int it = 0; it < particle_count; ++it)
         m_particles.emplace_back(Particle());

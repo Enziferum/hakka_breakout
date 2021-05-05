@@ -21,12 +21,16 @@ source distribution.
 
 #pragma once
 
-#include "robot2D/State.h"
+#include <robot2D/Extra/State.h>
 
 class PauseState: public robot2D::State{
 public:
-    PauseState();
-    ~PauseState();
+    PauseState(robot2D::IStateMachine &machine);
+    ~PauseState() override = default;
 
+
+    void handleEvents(const robot2D::Event &event) override;
+    void update(float dt) override;
+    void render() override;
 private:
 };

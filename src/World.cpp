@@ -20,7 +20,6 @@ source distribution.
 *********************************************************************/
 
 #include <robot2D/Graphics/RenderTarget.h>
-#include <robot2D/Graphics/RenderStates.h>
 #include <robot2D/Core/Keyboard.h>
 
 #include "game/World.hpp"
@@ -28,11 +27,12 @@ source distribution.
 #include "game/MessageIDs.hpp"
 
 
-const float add_size1 = 50.f;
-const float speed_multiplier1 = 1.2;
-const float strength1 = 2.f;
-const float collider_multipier1 = 100.f;
-const auto emitter_offset1 = robot2D::vec2f(6.25f, 6.25f);
+const float add_size = 50.f;
+const float speed_multiplier = 1.2;
+const float strength = 2.f;
+const float collider_multipier = 100.f;
+const auto emitter_offset = robot2D::vec2f(6.25f, 6.25f);
+const unsigned score_multiplier = 10;
 
 World::World(MessageBus& messageBus, robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& textures):
     m_messageBus(messageBus),
@@ -40,7 +40,8 @@ World::World(MessageBus& messageBus, robot2D::ResourceHandler<robot2D::Texture, 
     m_gameConfiguration(nullptr),
     m_keys(),
     m_keysProcessed(),
-    m_textures(textures){
+    m_textures(textures) {
+
     m_windowSize.x = 800;
     m_windowSize.y = 600;
 }
@@ -109,7 +110,7 @@ bool World::setup(GameConfiguration* gameConfiguration, AudioPlayer* audioPlayer
 bool World::setupLevels(const std::vector<std::string>& paths,
                         robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& textures) {
 
-    for(size_t it = 1; it < paths.size(); ++it) {
+    for(size_t it = 0; it < paths.size(); ++it) {
         Level level;
         level.loadLevel(paths[it], textures, robot2D::vec2f(m_windowSize.x,
                                                             m_windowSize.y / 2),
@@ -131,6 +132,15 @@ void World::handleEvents(const robot2D::Event &event) {
     }
 }
 
+void World::forwardMessage(const Message& message) {
+    if(message.id == messageIDs::LevelChangeEnd) {
+        auto msg = message.unpack<LevelEvent>();
+        if( currlevel < m_levels.size() - 1  && msg.update_level){
+            ++currlevel;
+        }
+    }
+}
+
 void World::update(float dt){
     float m_border = m_windowSize.y;
 
@@ -140,19 +150,17 @@ void World::update(float dt){
 
     m_levels[currlevel].update(dt);
     m_parallax.update(dt);
-    m_particleEmitter.update(dt, m_gameConfiguration -> emitter_new_sz, m_ball, emitter_offset1);
+    //m_particleEmitter.update(dt, m_gameConfiguration -> emitter_new_sz, m_ball, emitter_offset1);
     m_postProcessing.update(dt);
     m_audioPlayer -> update_sounds();
     m_powerupSystem.update(dt);
 
-
     if(m_ball.m_pos.y >= m_border)
         reset_game();
 
-//    if(m_levels[currlevel].destroyed())
-//        change_level();
+    if(m_levels[currlevel].destroyed())
+        change_level();
 }
-
 
 void World::process_input(float dt) {
     float velocity = dt * m_gameConfiguration ->speed;
@@ -192,17 +200,19 @@ void World::process_collisions() {
         if(box.m_destroyed)
             continue;
 
-        auto collision = checkCollision(m_ball, box);
+        auto collision = isCollide(m_ball, box);
 
         if(std::get<0>(collision)) {
 
             if (!box.m_solid) {
                 m_powerupSystem.spawn_powerup(m_textures, box.m_pos);
                 box.m_destroyed = true;
-                m_audioPlayer->play(AudioFileID::bleep_1);
+                auto msg = m_messageBus.post<ScoreEvent>(messageIDs::ScoreUpdate);
+                msg -> new_score = box.block_id * score_multiplier;
+                m_audioPlayer -> play(AudioFileID::bleep_1);
             } else {
                 m_postProcessing.setValue("shake", true);
-                m_audioPlayer->play(AudioFileID::solid);
+                m_audioPlayer -> play(AudioFileID::solid);
             }
 
 
@@ -228,7 +238,7 @@ void World::process_collisions() {
             }
         }
 
-        collision = checkCollision(m_ball, m_paddle);
+        collision = isCollide(m_ball, m_paddle);
 
         if(!m_ball.stuck && std::get<0>(collision)) {
             float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.f;
@@ -237,14 +247,14 @@ void World::process_collisions() {
 
 
             robot2D::vec2f oldVelocity = m_ball.velocity;
-            m_ball.velocity.x = collider_multipier1 * percentage * strength1;
+            m_ball.velocity.x = collider_multipier * percentage * strength;
             m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
             m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
         }
     }
 
     for(auto& powerit: m_powerupSystem.get()) {
-        auto collision = checkCollision(powerit, m_paddle);
+        auto collision = isCollide(powerit, m_paddle);
         if(powerit.m_pos.y >= m_windowSize.y)
             powerit.m_destroyed = true;
 
@@ -275,10 +285,10 @@ void World::activate_power(PowerUp &power) {
             m_ball.sticky = true;
             break;
         case PowerUpType::speed:
-            m_ball.velocity = m_ball.velocity * speed_multiplier1;
+            m_ball.velocity = m_ball.velocity * speed_multiplier;
             break;
         case PowerUpType::size:
-            m_paddle.m_size.x += add_size1;
+            m_paddle.m_size.x += add_size;
             m_paddle.setSize(m_paddle.m_size);
             break;
         default:
@@ -286,17 +296,18 @@ void World::activate_power(PowerUp &power) {
     }
 }
 
-void World::reset_game() {
+void World::reset_game(bool update_lifes) {
     if(m_lives == 0) {
         m_lives = m_gameConfiguration -> max_lives;
         auto msg = m_messageBus.post<LivesEndEvent>(messageIDs::LivesEnd);
         return;
     }
 
+    if(update_lifes)
     {
         --m_lives;
         auto msg = m_messageBus.post<LivesEvent>(messageIDs::LivesUpdate);
-        msg->new_lives = m_lives;
+        msg -> new_lives = m_lives;
     }
 
     m_powerupSystem.get().clear();
@@ -314,6 +325,11 @@ void World::reset_game() {
     m_ball.setPos(ballPos);
 }
 
+void World::change_level() {
+    reset_game(false);
+    auto msg = m_messageBus.post<LevelEvent>(messageIDs::LevelChange);
+}
+
 
 void World::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const {
     target.draw(m_parallax);
@@ -324,6 +340,10 @@ void World::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) co
     target.draw(m_ball);
     target.draw(m_powerupSystem);
 }
+
+
+
+
 
 
 

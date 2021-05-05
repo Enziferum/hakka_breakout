@@ -78,7 +78,7 @@ Direction find_direction(const robot2D::vec2f& vec){
     return direction;
 }
 
-bool checkCollision(const GameObject &lob, const GameObject &rob) {
+bool isCollide(const GameObject& lob, const GameObject& rob) {
     bool collisionX = lob.m_pos.x + lob.m_size.x >= rob.m_pos.x
             && rob.m_pos.x + rob.m_size.x >= lob.m_pos.x;
     bool collisionY = lob.m_pos.y + lob.m_size.y >= rob.m_pos.y
@@ -87,7 +87,7 @@ bool checkCollision(const GameObject &lob, const GameObject &rob) {
     return collisionX && collisionY;
 }
 
-Collision checkCollision(const BallObject& lob, const GameObject& rob) {
+Collision isCollide(const BallObject& lob, const GameObject& rob) {
     robot2D::vec2f center(lob.m_pos.x + lob.radius,
                         lob.m_pos.y + lob.radius);
 

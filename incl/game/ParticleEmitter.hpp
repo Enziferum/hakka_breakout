@@ -27,6 +27,7 @@ source distribution.
 #include <robot2D/Graphics/Drawable.h>
 
 #include "GameObject.hpp"
+#include "Ball.hpp"
 #include "Particle.hpp"
 
 class ParticleEmitter: public robot2D::Drawable{

@@ -44,8 +44,6 @@ const auto emitter_offset = robot2D::vec2f(6.25f, 6.25f);
 const vec3 wallbreakerColor = vec3(1.f, 0.5f, 0.5f);
 const vec3 stickyColor = vec3(1.f, 0.5f, 1.f);
 
-const robot2D::vec2f lives_pos = robot2D::vec2f(650, 10);
-const auto live_sz = robot2D::vec2f(robot2D::vec2f(30.f, 30.f));
 
 FileManager fm;
 
@@ -64,6 +62,22 @@ GameState::GameState(robot2D::IStateMachine& machine, AppContext<ContextID>& con
     setup();
 }
 
+
+void GameState::setup_configuration() {
+    m_audioPlayer = (AudioPlayer*)(m_context.getBuffer(ContextID::Audio));
+    if(m_audioPlayer == nullptr){
+        LOG_ERROR_E("m_audioPlayer == nullptr, after getting")
+        return;
+    }
+
+    auto configuration = (Configuration*)(m_context.getBuffer(ContextID::Configuration));
+    m_gameConfiguration = &(configuration->getGameConfiguration());
+    if(m_gameConfiguration == nullptr) {
+        LOG_ERROR_E("m_gameConfiguration == nullptr, after getting")
+        return;
+    }
+
+}
 
 void GameState::setup_resources() {
     auto configuration = (Configuration*)(m_context.getBuffer(ContextID::Configuration));
@@ -141,44 +155,8 @@ void GameState::setup_resources() {
     if(!m_world.setupLevels(paths, m_textures)){
         return;
     }
-}
 
-void GameState::setup_configuration() {
-    m_audioPlayer = (AudioPlayer*)(m_context.getBuffer(ContextID::Audio));
-    if(m_audioPlayer == nullptr){
-        LOG_ERROR_E("m_audioPlayer == nullptr, after getting")
-        return;
-    }
-
-    auto configuration = (Configuration*)(m_context.getBuffer(ContextID::Configuration));
-    m_gameConfiguration = &(configuration->getGameConfiguration());
-    if(m_gameConfiguration == nullptr) {
-        LOG_ERROR_E("m_gameConfiguration == nullptr, after getting")
-        return;
-    }
-
-}
-
-void GameState::setup_ui() {
-    auto size = m_window.get_size();
-
-    m_text.setText("Lives:");
-    m_text.setPos(lives_pos);
-    m_text.setFont(m_fonts.get(ResourceIDs::Font));
-    m_won.setFont(m_fonts.get(ResourceIDs::Font));
-    m_won.setPos(robot2D::vec2f(200, size.y / 2.f));
-
-
-    auto live_start_pos = robot2D::vec2f(m_text.getPos().x + 50, 5);
-
-    for(auto it = 0; it < m_gameConfiguration -> max_lives; ++it){
-        robot2D::Sprite sprite;
-        sprite.setTexture(m_textures.get(ResourceIDs::Face));
-        sprite.setScale(live_sz);
-        sprite.setPosition(robot2D::vec2f(live_start_pos.x + live_sz.x * it,
-                                          live_start_pos.y));
-        m_livesSprites.push_back(sprite);
-    }
+    m_gameUI.setup(m_textures, *configuration);
 }
 
 void GameState::setup() {
@@ -186,20 +164,19 @@ void GameState::setup() {
 
     setup_configuration();
     setup_resources();
-    setup_ui();
 
     m_bounceTimer.onTick([this](float dt) {
         (void)dt;
-//        if(currlevel < m_levels.size())
-//            ++currlevel;
         m_bounceTimer.reset();
         m_state = mState::Play;
+        LOG_INFO_E("Tick timer \n")
+        auto msg = m_bus.post<LevelEvent>(messageIDs::LevelChangeEnd);
+        msg -> update_level = true;
     });
 
     if(!m_world.setup(m_gameConfiguration, m_audioPlayer)) {
         return;
     }
-
 }
 
 void GameState::handleEvents(const robot2D::Event& event) {
@@ -253,12 +230,13 @@ void GameState::forwardMessage(const Message& msg) {
         return;
     }
 
+    m_world.forwardMessage(msg);
     m_gameUI.handleMessage(msg);
 }
 
 void GameState::update(float dt) {
     while (!m_bus.empty()) {
-        const auto &m = m_bus.poll();
+        const auto& m = m_bus.poll();
         forwardMessage(m);
     }
 
@@ -284,12 +262,6 @@ void GameState::render() {
     m_window.draw(m_world);
     m_window.draw(m_gameUI);
 
-//
-//    for(int it = 0; it < m_lives; ++it)
-//        m_window.draw( m_livesSprites[it]);
-//
-//    m_window.draw(m_text);
-//    m_window.draw(m_gameUI);
 //    if(m_state == mState::LevelChange)
 //        m_window.draw(m_won);
 

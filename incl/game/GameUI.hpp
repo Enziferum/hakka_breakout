@@ -27,13 +27,14 @@ source distribution.
 
 #include "IDs.hpp"
 #include "Message.hpp"
+#include "Configuration.hpp"
 
 class GameUI: public robot2D::Drawable {
 public:
     GameUI();
     ~GameUI() = default;
 
-    void setup();
+    void setup(robot2D::ResourceHandler<robot2D::Texture, ResourceIDs>& textures, Configuration& configuration);
     void handleMessage(const Message& msg);
     void update(float dt);
 
@@ -41,10 +42,14 @@ protected:
     void draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const override;
 
 private:
+    unsigned int m_lives = 0;
+    unsigned int m_score = 0;
+
     robot2D::Text m_livesText;
     robot2D::Text m_winText;
     robot2D::Text m_scoreText;
     robot2D::Text m_timeText;
 
     robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
+    std::vector<robot2D::Sprite> m_livesSprites;
 };

@@ -1,7 +1,7 @@
 /*********************************************************************
 (c) Alex Raag 2021
 https://github.com/Enziferum
-robot2D - Zlib license.
+robot2D_game - Zlib license.
 This software is provided 'as-is', without any express or
 implied warranty. In no event will the authors be held
 liable for any damages arising from the use of this software.
@@ -19,28 +19,22 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include "Message.hpp"
+#include <game/PauseState.hpp>
 
-enum messageIDs {
-    LivesUpdate = Message::Type::Count,
-    LevelChange,
-    LevelChangeEnd,
-    LivesEnd,
-    ScoreUpdate
-};
+PauseState::PauseState(robot2D::IStateMachine& machine) : State(machine) {
 
-struct LivesEvent final {
-    unsigned int new_lives;
-};
+}
 
-struct LevelEvent final {
-    bool update_level = false;
-};
 
-struct LivesEndEvent final {
+void PauseState::handleEvents(const robot2D::Event &event) {
 
-};
+}
 
-struct ScoreEvent final {
-    unsigned int new_score;
-};
+void PauseState::update(float dt) {
+
+}
+
+void PauseState::render() {
+
+}
+
