@@ -19,9 +19,11 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
+#include <robot2D/Graphics/RenderTarget.h>
 #include <game/gui/Label.hpp>
 
 namespace gui {
+    Label::Label() {}
 
     void Label::onPress(const robot2D::vec2f& f) {}
 
@@ -31,5 +33,30 @@ namespace gui {
 
     void Label::draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const
     {
+
+        target.draw(m_text);
     }
+
+    Label::Ptr Label::create() {
+        return std::make_shared<Label>();
+    }
+
+    void Label::setPosition(const robot2D::vec2f& pos) {
+        Transformable::setPosition(pos);
+        m_text.setPos(pos);
+    }
+
+    void Label::setFont(const robot2D::Font& font) {
+        m_text.setFont(font);
+    }
+
+    void Label::setText(const std::string& text) {
+        m_text.setText(text);
+    }
+
+    void Label::setScale(const robot2D::vec2f& factor) {
+        Transformable::setScale(factor);
+    }
+
+
 }

@@ -21,34 +21,23 @@ source distribution.
 
 #pragma once
 
-#include <robot2D/Graphics/Text.h>
-#include "INode.hpp"
-
+#include "Button.hpp"
+#include "Label.hpp"
 namespace gui {
-    class Label: public INode {
+
+    class TextButton: public Button {
     public:
-        using Ptr = std::shared_ptr<Label>;
+        using Ptr = std::shared_ptr<TextButton>;
     public:
-        Label();
-        ~Label()override = default;
+        TextButton();
+        ~TextButton() override = default;
 
-        void onPress(const robot2D::vec2f &f) override;
-
-        void onHover(const robot2D::vec2f &f) override;
-
-        void update(float dt) override;
-
-        void setText(const std::string& text);
-
-        void setFont(const robot2D::Font& font);
-
-        void setPosition(const robot2D::vec2f &pos) override;
-
-        void setScale(const robot2D::vec2f &factor) override;
-
+        void setLabel(Label::Ptr& label);
         static Ptr create();
     protected:
-        void draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const override;
-        robot2D::Text m_text;
+        void draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const override;
+
+    private:
+        Label::Ptr m_label;
     };
 }

@@ -43,11 +43,15 @@ namespace gui {
         void update(float dt) override;
 
         void setTexture(const robot2D::Texture& texture);
+
+        robot2D::FloatRect getLocalBounds() const;
+
+        robot2D::FloatRect getGlobalBounds() const;
     protected:
         void draw(robot2D::RenderTarget &target, robot2D::RenderStates states)
                 const override;
 
-    private:
+    protected:
         enum class State{
             Normal,
             Hovered,

@@ -34,5 +34,6 @@ enum class ResourceIDs{
     Size,
     Speed,
     Sticky,
+    Button,
     Font
 };

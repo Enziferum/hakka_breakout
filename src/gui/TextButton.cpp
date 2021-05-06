@@ -19,36 +19,25 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#pragma once
-
-#include <robot2D/Graphics/Text.h>
-#include "INode.hpp"
+#include <robot2D/Graphics/RenderTarget.h>
+#include "game/gui/TextButton.hpp"
 
 namespace gui {
-    class Label: public INode {
-    public:
-        using Ptr = std::shared_ptr<Label>;
-    public:
-        Label();
-        ~Label()override = default;
 
-        void onPress(const robot2D::vec2f &f) override;
+    TextButton::TextButton(): m_label(nullptr) {}
 
-        void onHover(const robot2D::vec2f &f) override;
+    void TextButton::setLabel(Label::Ptr& label) {
+        m_label = label;
+    }
 
-        void update(float dt) override;
+    void TextButton::draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const {
+        Button::draw(target, states);
+        if(!m_label)
+            return;
+        target.draw(*m_label);
+    }
 
-        void setText(const std::string& text);
-
-        void setFont(const robot2D::Font& font);
-
-        void setPosition(const robot2D::vec2f &pos) override;
-
-        void setScale(const robot2D::vec2f &factor) override;
-
-        static Ptr create();
-    protected:
-        void draw(robot2D::RenderTarget& target, robot2D::RenderStates states) const override;
-        robot2D::Text m_text;
-    };
+    TextButton::Ptr TextButton::create() {
+        return std::make_shared<TextButton>();
+    }
 }

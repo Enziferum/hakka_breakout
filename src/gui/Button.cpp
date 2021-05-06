@@ -42,13 +42,8 @@ namespace gui{
             return;
 
         // local bounds //
-        float w = std::abs(m_size.x);
-        float h = std::abs(m_size.y);
-        auto bounds = robot2D::FloatRect(0.f, 0.f, w, h);
 
-        auto globalBounds = getTransform().transformRect(bounds);
-
-        if(globalBounds.contains(mpos))
+        if(getGlobalBounds().contains(mpos))
             m_pressed = true;
     }
 
@@ -83,6 +78,16 @@ namespace gui{
         states.texture = m_texture;
         states.color = robot2D::Color::White;
         target.draw(states);
+    }
+
+    robot2D::FloatRect Button::getLocalBounds() const {
+        float w = std::abs(m_size.x);
+        float h = std::abs(m_size.y);
+        return robot2D::FloatRect(0.f, 0.f, w, h);
+    }
+
+    robot2D::FloatRect Button::getGlobalBounds() const {
+        return getTransform().transformRect(getLocalBounds());
     }
 
 }

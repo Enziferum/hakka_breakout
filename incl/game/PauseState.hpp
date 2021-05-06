@@ -21,16 +21,33 @@ source distribution.
 
 #pragma once
 
-#include <robot2D/Extra/State.h>
+#include "robot2D/Extra/State.h"
+#include "robot2D/Extra/IStateMachine.h"
+
+#include "robot2D/Util/ResourceHandler.h"
+#include <robot2D/Graphics/Font.h>
+
+#include "game/gui/Gui.hpp"
+#include "game/IDs.hpp"
+#include "game/AppContext.hpp"
+#include "game/ContextIDs.hpp"
 
 class PauseState: public robot2D::State{
 public:
-    PauseState(robot2D::IStateMachine &machine);
-    ~PauseState() override = default;
+    PauseState(robot2D::IStateMachine& machine, AppContext<ContextID>& );
+    ~PauseState()override = default;
 
-
-    void handleEvents(const robot2D::Event &event) override;
+    void handleEvents(const robot2D::Event& event);
     void update(float dt) override;
     void render() override;
 private:
+    void setup();
+    void load_resources();
+private:
+    AppContext<ContextID> m_context;
+
+    robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> m_textures;
+    robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
+
+    gui::Gui m_gui;
 };

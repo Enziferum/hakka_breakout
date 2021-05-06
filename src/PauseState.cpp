@@ -19,22 +19,109 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <game/PauseState.hpp>
+#include <robot2D/Util/Logger.h>
 
-PauseState::PauseState(robot2D::IStateMachine& machine) : State(machine) {
+#include "game/FileManager.hpp"
+#include "game/States.hpp"
+#include "game/PauseState.hpp"
+#include "game/gui/TextButton.hpp"
 
+
+const std::string back_path = "res/textures/cityskyline.png";
+const std::string menu_buttonPath = "res/textures/menu_button.png";
+const std::string font_path = "res/fonts/game_font.ttf";
+
+const auto button_size = robot2D::vec2f(200, 50);
+
+PauseState::PauseState(robot2D::IStateMachine& machine, AppContext<ContextID>& context) :
+        State(machine),
+        m_context(context){
+    setup();
 }
 
-
-void PauseState::handleEvents(const robot2D::Event &event) {
-
+void PauseState::handleEvents(const robot2D::Event& event) {
+    if(event.type == robot2D::Event::Resized){}
+    m_gui.handleEvents(event);
 }
 
 void PauseState::update(float dt) {
-
+    m_gui.update(dt);
 }
 
 void PauseState::render() {
-
+    m_window.draw(m_gui);
 }
+
+void PauseState::load_resources() {
+    FileManager fm;
+    auto configuration = *(Configuration*)m_context.getBuffer(ContextID::Configuration);
+    fm.setConfiguration(configuration.getResourceConfiguration());
+
+
+    if(!m_textures.loadFromFile(ResourceIDs::Button, fm.combinePath(ResourceType::Texture,
+                                                                    "menu_button.png"), true)){
+        LOG_ERROR("Can't load texture % \n",  menu_buttonPath.c_str())
+    }
+
+    if(!m_fonts.loadFromFile(ResourceIDs::Font, fm.combinePath(ResourceType::Font,
+                                                               "game_font.ttf"))){
+        LOG_ERROR("Can't load font % \n",  font_path.c_str())
+    }
+}
+
+void PauseState::setup() {
+    load_resources();
+
+    auto size = m_window.get_size();
+
+    auto start_label = gui::Label::create();
+    start_label -> setFont(m_fonts.get(ResourceIDs::Font));
+    start_label -> setText("Continue");
+
+    auto start_btn = gui::TextButton::create();
+    start_btn -> setTexture(m_textures.get(ResourceIDs::Button));
+    start_btn -> setPosition(robot2D::vec2f(size.x / 2 - button_size.x / 2, size.y / 2 - 100
+                                                                            - button_size.y / 2));
+
+    auto sz = m_textures.get(ResourceIDs::Button).get_size();
+    start_btn -> scale(robot2D::vec2f (button_size.x / sz.x, button_size.y / sz.y));
+
+    auto start_bounds = start_btn -> getGlobalBounds();
+    auto center = robot2D::vec2f(start_bounds.lx + start_bounds.width / 2 - 12,
+                                 start_bounds.ly + start_bounds.height / 2 - 8);
+    start_label -> setPosition(center);
+
+    start_btn -> setLabel(start_label);
+
+    start_btn -> onTouch([this]() {
+        m_machine.popState();
+        m_machine.pushState(States::Game);
+    });
+
+    auto end_label = gui::Label::create();
+    end_label -> setFont(m_fonts.get(ResourceIDs::Font));
+    end_label -> setText("To Menu");
+
+    auto end_btn = gui::TextButton::create();
+    end_btn -> setTexture(m_textures.get(ResourceIDs::Button));
+    end_btn -> setScale(robot2D::vec2f (button_size.x / sz.x, button_size.y / sz.y));
+
+    auto end_pos = start_btn -> getPosition();
+    end_btn -> setPosition(robot2D::vec2f(end_pos.x, end_pos.y + 100 - button_size.y / 2));
+
+    auto end_bounds = end_btn -> getGlobalBounds();
+    center = robot2D::vec2f(end_bounds.lx + end_bounds.width / 2 - 12,
+                            end_bounds.ly + end_bounds.height / 2 - 8);
+
+    end_label -> setPosition(center);
+    end_btn -> setLabel(end_label);
+
+    end_btn -> onTouch([this](){
+        m_machine.pushState(States::Menu);
+    });
+
+    m_gui.pack(start_btn);
+    m_gui.pack(end_btn);
+}
+
 

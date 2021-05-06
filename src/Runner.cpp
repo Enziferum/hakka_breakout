@@ -77,10 +77,10 @@ void Runner::run() {
 
 
     my_app.register_state<IntroState>(States::Intro, my_app);
-    my_app.register_state<MenuState>(States::Menu, my_app);
+    my_app.register_state<MenuState>(States::Menu, my_app, m_context);
     my_app.register_state<GameState>(States::Game, my_app, m_context, m_bus);
-    my_app.register_state<PauseState>(States::Pause, my_app);
-    my_app.setCurrent(States::Menu);
+    my_app.register_state<PauseState>(States::Pause, my_app, m_context);
+    my_app.setCurrent(States::Intro);
 
     my_app.run();
 }

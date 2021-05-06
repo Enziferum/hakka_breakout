@@ -29,10 +29,13 @@ source distribution.
 #include "robot2D/Util/ResourceHandler.h"
 
 #include "game/gui/Gui.hpp"
+#include "game/IDs.hpp"
+#include "game/AppContext.hpp"
+#include "game/ContextIDs.hpp"
 
 class MenuState: public robot2D::State{
 public:
-    MenuState(robot2D::IStateMachine& machine);
+    MenuState(robot2D::IStateMachine& machine, AppContext<ContextID>& );
     ~MenuState()override = default;
 
     void handleEvents(const robot2D::Event& event);
@@ -42,10 +45,11 @@ private:
     void setup();
     void load_resources();
 private:
-    robot2D::ResourceHandler<robot2D::Texture> m_textures;
+    AppContext<ContextID> m_context;
+
+    robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> m_textures;
+    robot2D::ResourceHandler<robot2D::Font, ResourceIDs> m_fonts;
     robot2D::Sprite m_background;
-    robot2D::Font m_font;
-    robot2D::Text m_name;
 
     gui::Gui m_gui;
 };

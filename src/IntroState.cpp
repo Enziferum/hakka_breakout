@@ -63,6 +63,7 @@ void IntroState::setup() {
 
     m_timer.onTick([this](float dt){
         m_timer.reset();
+        m_machine.popState();
         m_machine.pushState(States::Menu);
     });
 }

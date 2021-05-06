@@ -198,8 +198,11 @@ void GameState::handleEvents(const robot2D::Event& event) {
 
     if(m_state == mState::Play) {
         if (event.type == robot2D::Event::KeyPressed) {
-            if (event.key.code == robot2D::Key::ESCAPE)
-                m_state = mState::Pause;
+            if (event.key.code == robot2D::Key::ESCAPE) {
+                //m_state = mState::Pause;
+                m_machine.popState();
+                m_machine.pushState(States::Pause);
+            }
             if (event.key.code == robot2D::Key::Y)
                 changeLevel();
         }
