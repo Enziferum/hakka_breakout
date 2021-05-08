@@ -19,32 +19,32 @@ and must not be misrepresented as being the original software.
 source distribution.
 *********************************************************************/
 
-#include <filesystem>
-#include "MacOSFileSystem.hpp"
-
-namespace robot2D {
-    namespace priv {
-        namespace fs = std::__fs::filesystem;
-
-        std::string MacOSFileSystem::getCurrentDir() {
-            return fs::current_path().string();
-        }
-
-        std::vector<std::string> MacOSFileSystem::listFiles(const std::string &path) {
-            std::vector<std::string> res;
-            for (const auto & entry : fs::directory_iterator(path)) {
-                auto p = '/' + entry.path().string();
-                res.emplace_back(p);
-            }
-            return res;
-        }
-
-        bool MacOSFileSystem::isDir(const std::string &path) {
-            return true;
-        }
-
-        bool MacOSFileSystem::isFile(const std::string &path) {
-            return true;
-        }
-    }
-}
+//#include <filesystem>
+//#include "MacOSFileSystem.hpp"
+//
+//namespace robot2D {
+//    namespace priv {
+//        namespace fs = std::__fs::filesystem;
+//
+//        std::string MacOSFileSystem::getCurrentDir() {
+//            return fs::current_path().string();
+//        }
+//
+//        std::vector<std::string> MacOSFileSystem::listFiles(const std::string &path) {
+//            std::vector<std::string> res;
+//            for (const auto & entry : fs::directory_iterator(path)) {
+//                auto p = '/' + entry.path().string();
+//                res.emplace_back(p);
+//            }
+//            return res;
+//        }
+//
+//        bool MacOSFileSystem::isDir(const std::string &path) {
+//            return true;
+//        }
+//
+//        bool MacOSFileSystem::isFile(const std::string &path) {
+//            return true;
+//        }
+//    }
+//}

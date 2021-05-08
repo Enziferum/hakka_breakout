@@ -34,6 +34,7 @@ const float strength = 2.f;
 const float collider_multipier = 100.f;
 const auto emitter_offset = robot2D::vec2f(6.25f, 6.25f);
 const unsigned score_multiplier = 10;
+const robot2D::vec2f ui_offset = robot2D::vec2f(0.f, 50.f);
 
 World::World(MessageBus &messageBus, robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> &textures) :
         m_messageBus(messageBus),
@@ -42,7 +43,8 @@ World::World(MessageBus &messageBus, robot2D::ResourceHandler<robot2D::Texture, 
         m_keys(),
         m_keysProcessed(),
         m_textures(textures),
-        m_state(Play){
+        m_state(Play),
+        m_border(0.f){
 
     m_windowSize.x = 800;
     m_windowSize.y = 600;
@@ -66,12 +68,14 @@ bool World::setup(GameConfiguration *gameConfiguration, AudioPlayer *audioPlayer
                 m_postProcessing.setValue("confuse", false);
                 break;
             case PowerUpType::wallbreaker:
-                m_ball.color = robot2D::Color::White;
+                m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 0.5f);
+                m_ball.m_sprite.setColor(m_ball.color);
                 m_ball.wallbreaker = false;
                 break;
             case PowerUpType::sticky:
                 m_ball.sticky = false;
-                m_ball.color = robot2D::Color::White;
+                m_ball.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
+				m_ball.m_sprite.setColor(m_ball.color);
                 break;
             default:
                 break;
@@ -86,7 +90,7 @@ bool World::setup(GameConfiguration *gameConfiguration, AudioPlayer *audioPlayer
     m_background.setScale(robot2D::vec2f(size.x, size.y));
 
     m_paddle.m_sprite.setTexture(m_textures.get(ResourceIDs::Paddle));
-    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - m_gameConfiguration->paddle_size.x / 2,
+    m_paddle.setPos(robot2D::vec2f(size.x / 2.f - m_gameConfiguration->paddle_size.x / 2.f,
                                    size.y - m_gameConfiguration->paddle_size.y));
     m_paddle.setSize(m_gameConfiguration->paddle_size);
 
@@ -104,6 +108,7 @@ bool World::setup(GameConfiguration *gameConfiguration, AudioPlayer *audioPlayer
                                   m_gameConfiguration->ball_radius * 2.f));
 
     m_lives = m_gameConfiguration->max_lives;
+	m_border = m_windowSize.y;
 
     return true;
 }
@@ -116,7 +121,7 @@ bool World::setupLevels(const std::vector<std::string> &paths,
         Level level;
         level.loadLevel(paths[it], textures, robot2D::vec2f(m_windowSize.x,
                                                             m_windowSize.y / 2),
-                        robot2D::vec2f(0.f, 50.f));
+                        ui_offset);
         m_levels.push_back(level);
     }
 
@@ -148,11 +153,10 @@ void World::update(float dt) {
     if(m_state == LevelChange)
         return;
 
-    float m_border = m_windowSize.y;
-
     process_input(dt);
+	m_ball.move(dt);
     process_collisions();
-    m_ball.move(dt);
+
 
     m_levels[currlevel].update(dt);
     m_parallax.update(dt);
@@ -203,7 +207,7 @@ void World::process_input(float dt) {
 void World::process_collisions() {
 
     for (auto &box: m_levels[currlevel].getTiles()) {
-        if (box.m_state == LevelBlock::BlockState::Destroy)
+        if (box.getState() == LevelBlock::BlockState::Destroy)
             continue;
 
         auto collision = isCollide(m_ball, box);
@@ -212,11 +216,12 @@ void World::process_collisions() {
 
             if (!box.m_solid) {
                 m_powerupSystem.spawn_powerup(m_textures, box.m_pos);
-                box.m_state = LevelBlock::BlockState::Destroy;
+                box.setState(LevelBlock::BlockState::Destroy);
                 auto msg = m_messageBus.post<ScoreEvent>(messageIDs::ScoreUpdate);
-                msg->new_score = box.block_id * score_multiplier;
+                msg->new_score = box.getLevelId() * score_multiplier;
                 m_audioPlayer->play(AudioFileID::bleep_1);
-            } else {
+            }
+            else {
                 m_postProcessing.setValue("shake", true);
                 m_audioPlayer->play(AudioFileID::solid);
             }
@@ -233,7 +238,8 @@ void World::process_collisions() {
                         m_ball.m_pos.x += penetration;
                     else
                         m_ball.m_pos.x -= penetration;
-                } else {
+                }
+                else {
                     m_ball.velocity.y = -m_ball.velocity.y;
                     float penetration = m_ball.radius - std::abs(vec.y);
                     if (dir == Direction::up)
@@ -245,23 +251,11 @@ void World::process_collisions() {
         }
 
         collision = isCollide(m_ball, m_paddle);
-
-        if (!m_ball.stuck && std::get<0>(collision)) {
-            float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.f;
-            float distance = (m_ball.m_pos.x + m_ball.radius) - centerBoard;
-            float percentage = distance / (m_paddle.m_size.x / 2.f);
-
-
-            robot2D::vec2f oldVelocity = m_ball.velocity;
-            m_ball.velocity.x = collider_multipier * percentage * strength;
-            m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
-            m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
-        }
     }
 
     for (auto &powerit: m_powerupSystem.get()) {
-        auto collision = isCollide(powerit, m_paddle);
-        if (powerit.m_pos.y >= m_windowSize.y)
+        auto collision = isCollide(m_paddle, powerit);
+        if (powerit.m_pos.y >= m_border)
             powerit.m_destroyed = true;
 
         if (collision) {
@@ -270,6 +264,22 @@ void World::process_collisions() {
             powerit.activated = true;
         }
     }
+
+	auto collision = isCollide(m_ball, m_paddle);
+
+	if (!m_ball.stuck && std::get<0>(collision)) {
+		float centerBoard = m_paddle.m_pos.x + m_paddle.m_size.x / 2.f;
+		float distance = (m_ball.m_pos.x + m_ball.radius) - centerBoard;
+		float percentage = distance / (m_paddle.m_size.x / 2.f);
+
+
+		robot2D::vec2f oldVelocity = m_ball.velocity;
+		m_ball.velocity.x = collider_multipier * percentage * strength;
+		m_ball.velocity = normalize(m_ball.velocity) * length(oldVelocity);
+		m_ball.velocity.y = -1.f * std::abs(-m_ball.velocity.y);
+
+		m_ball.stuck = m_ball.sticky;
+	}
 
 }
 

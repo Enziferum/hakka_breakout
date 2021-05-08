@@ -81,8 +81,7 @@ bool Level::loadLevel(const std::string &path, const robot2D::ResourceHandler<ro
             if (c < 1 || c > 5)
                 continue;
 
-            LevelBlock object;
-            object.block_id = rh - y;
+            LevelBlock object(rh - y);
             if (c == 1) {
                 object.m_solid = true;
                 object.m_sprite.setTexture(handler.get(ResourceIDs::Solid));
@@ -99,7 +98,6 @@ bool Level::loadLevel(const std::string &path, const robot2D::ResourceHandler<ro
             object.m_sprite.setPosition(pos);
             object.m_sprite.setScale(tile_sz);
             object.m_sprite.setColor(tile_colors[c]);
-            object.m_state = LevelBlock::BlockState::Alive;
 
             m_tiles.push_back(object);
         }
@@ -110,20 +108,20 @@ bool Level::loadLevel(const std::string &path, const robot2D::ResourceHandler<ro
 
 void Level::update(float dt) {
     for(auto& it: m_tiles){
-        if(it.m_state == LevelBlock::BlockState::Destroy)
+        if(it.getState() == LevelBlock::BlockState::Destroy)
             it.destroyAnimation(dt);
     }
 
     m_tiles.erase(std::remove_if(m_tiles.begin(), m_tiles.end(),
                                  [](const LevelBlock &object) {
-                                     return object.m_state == LevelBlock::BlockState::Died;
+                                     return object.getState() == LevelBlock::BlockState::Died;
                                  }), m_tiles.end());
 }
 
 void Level::draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const {
     for (auto &it: m_tiles) {
 
-        if(it.m_state == LevelBlock::BlockState::Died)
+        if(it.getState() == LevelBlock::BlockState::Died)
             continue;
 
         target.draw(it, states);
@@ -134,7 +132,7 @@ bool Level::destroyed() const {
     bool res = true;
 
     for(auto &it: m_tiles){
-        if(it.m_state != LevelBlock::BlockState::Died)
+        if(it.getState() != LevelBlock::BlockState::Died)
             return false;
     }
 

@@ -65,6 +65,7 @@ std::vector<PowerUp> &PowerupSystem::get() {
 void PowerupSystem::spawn_powerup(robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> &m_textures,
                                   const robot2D::vec2f &spawn_pos) {
     PowerUp power_up;
+	power_up.m_type = PowerUpType::none;
 
     if (randomize(75)) {
         power_up.m_type = PowerUpType::speed;
@@ -73,43 +74,47 @@ void PowerupSystem::spawn_powerup(robot2D::ResourceHandler<robot2D::Texture, Res
         power_up.duration = 0.f;
     }
 
-    if (randomize(75)) {
+    if (randomize(1)) {
         power_up.m_type = PowerUpType::sticky;
         power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Sticky));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.5f, 1.0f);
         power_up.duration = 20.f;
     }
 
-    if (randomize(75)) {
+    if (randomize(100)) {
         power_up.m_type = PowerUpType::wallbreaker;
         power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Wallbreaker));
         power_up.color = robot2D::Color::from_gl(0.5f, 1.0f, 0.5f);
-        power_up.duration = 10.f;
+        power_up.duration = 1.f;
     }
 
-    if (randomize(20)) {
+    if (randomize(1000)) {
         power_up.m_type = PowerUpType::size;
         power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Size));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.6f, 0.4f);
         power_up.duration = 0.f;
     }
 
-    if (randomize(15)) {
+    if (randomize(75)) {
         power_up.m_type = PowerUpType::confuse;
         power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Confuse));
         power_up.color = robot2D::Color::from_gl(1.0f, 0.3f, 0.3f);
         power_up.duration = 15.f;
     }
 
-    if (randomize(15)) {
+    if (randomize(75)) {
         power_up.m_type = PowerUpType::chaos;
         power_up.m_sprite.setTexture(m_textures.get(ResourceIDs::Chaos));
         power_up.color = robot2D::Color::from_gl(0.9f, 0.25f, 0.25f);
         power_up.duration = 15.f;
     }
 
+    if(power_up.m_type == PowerUpType::none)
+		return;
+
     power_up.setPos(spawn_pos);
     power_up.setSize(powerup_size);
+	power_up.m_sprite.setColor(power_up.color);
     power_up.velocity = powerup_velocity;
     m_power_ups.emplace_back(power_up);
 }
@@ -121,10 +126,8 @@ bool PowerupSystem::randomize(const unsigned &chance) {
 
 bool PowerupSystem::otherActive(const PowerUpType &type) {
     for (auto &it: m_power_ups) {
-        if (it.activated) {
-            if (it.m_type == type)
+        if (it.activated && it.m_type == type)
                 return true;
-        }
     }
     return false;
 }
@@ -135,5 +138,9 @@ void PowerupSystem::setCallback(callback &&func) {
 
 void PowerupSystem::draw(robot2D::RenderTarget &target, robot2D::RenderStates states) const {
     for (auto &it: m_power_ups)
-        target.draw(it);
+	{
+		if (it.m_destroyed)
+			continue;
+		target.draw(it);
+	}
 }

@@ -25,6 +25,8 @@ source distribution.
 
 #include "game/PostProcessing.hpp"
 
+constexpr float shake_time = 0.05f;
+
 PostProcessing::PostProcessing() :
         m_size(800, 600),
         m_shake(false),
@@ -181,6 +183,6 @@ void PostProcessing::setValue(const std::string &id, const bool &value) {
         m_confuse = value;
     if (id == "shake") {
         m_shake = value;
-        m_shake_time = 0.05f;
+        m_shake_time = shake_time;
     }
 }

@@ -29,7 +29,7 @@ namespace robot2D {
         public:
             WinFileSystem() = default;
 
-            ~WinFileSystem() override = default;
+            virtual ~WinFileSystem() override = default;
 
             std::string getCurrentDir() override;
 

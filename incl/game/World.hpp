@@ -111,4 +111,6 @@ private:
     bool m_keysProcessed[1024];
 
     robot2D::ResourceHandler<robot2D::Texture, ResourceIDs> &m_textures;
+
+    float m_border;
 };
